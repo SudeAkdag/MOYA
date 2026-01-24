@@ -51,7 +51,7 @@ class AppThemes {
           surface: const Color(0xFFF4ACB7),    // Kart Rengi (Tatlı Pembe)
           textColor: const Color(0xFF610544),  // Yazı Rengi (Koyu Mürdüm)
         );
-
+    
         case AppThemeType.night:
         return _buildTheme(
           primary: const Color(0xFF9E9E9E),

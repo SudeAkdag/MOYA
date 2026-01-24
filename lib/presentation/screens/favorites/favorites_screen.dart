@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Mevcut temanın renklerine erişiyoruz
+    final theme = Theme.of(context);
+
     return DefaultTabController(
-      length: 3, // 3 Kategori: Blog, Egzersiz, Müzik
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Favorilerim"),
-          bottom: const TabBar(
-            labelColor: AppColors.primaryGreen,
+          bottom: TabBar(
+            // ARTIK SABİT RENK DEĞİL, TEMANIN ANA RENGİNİ KULLANIYORUZ
+            labelColor: theme.primaryColor, 
             unselectedLabelColor: Colors.grey,
-            indicatorColor: AppColors.primaryGreen,
-            tabs: [
+            indicatorColor: theme.primaryColor,
+            tabs: const [
               Tab(text: "Bloglar"),
               Tab(text: "Egzersizler"),
               Tab(text: "Müzikler"),

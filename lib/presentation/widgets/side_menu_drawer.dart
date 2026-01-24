@@ -1,47 +1,65 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 
 class SideMenuDrawer extends StatelessWidget {
-  // Ana ekrandan gelen sayfa değiştirme fonksiyonunu alıyoruz
   final Function(int) onMenuTap; 
 
   const SideMenuDrawer({super.key, required this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
+    // 1. Temaya erişim
+    final theme = Theme.of(context);
+
     return Drawer(
-      backgroundColor: const Color(0xFFF9F4EA),
+      // 2. Arka plan rengini temadan alıyoruz
+      backgroundColor: theme.scaffoldBackgroundColor,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(color: AppColors.primaryGreen),
-            accountName: const Text("Ayşe Yılmaz", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            accountEmail: const Text("ayse.yilmaz@ornek.com"),
-            currentAccountPicture: const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 40, color: AppColors.primaryGreen),
+            decoration: BoxDecoration(
+              // 3. Header kısmını temanın ana rengi yapıyoruz
+              color: theme.primaryColor,
+            ),
+            accountName: Text(
+              "Ayşe Yılmaz", 
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white, // Header içi yazı genelde sabit kalabilir veya temadan çekilebilir
+              ),
+            ),
+            accountEmail: const Text(
+              "ayse.yilmaz@ornek.com",
+              style: TextStyle(color: Colors.white70),
+            ),
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: theme.scaffoldBackgroundColor,
+              child: Icon(
+                Icons.person, 
+                size: 40, 
+                color: theme.primaryColor,
+              ),
             ),
           ),
 
-          // YENİ YÖNTEM: Push yerine index gönderiyoruz
-         // YENİ YÖNTEM: Doğru sayfa numaraları (index) gönderiliyor
-_buildMenuItem(Icons.person_outline, "Profil", () => onMenuTap(5)), // 5. Sayfa
-_buildMenuItem(Icons.fitness_center, "Egzersiz", () => onMenuTap(6)), // 6. Sayfa
-_buildMenuItem(Icons.self_improvement, "Meditasyon", () => onMenuTap(7)), // 7. Sayfa
-
-// Müzik sayfası listede 3. sırada olduğu için onu değiştirmiyoruz
-_buildMenuItem(Icons.music_note, "Müzik", () => onMenuTap(3)), 
-
-_buildMenuItem(Icons.article_outlined, "Blog", () => onMenuTap(8)), // 8. Sayfa
+          // Menü Öğeleri
+          _buildMenuItem(theme, Icons.person_outline, "Profil", () => onMenuTap(5)),
+          _buildMenuItem(theme, Icons.fitness_center, "Egzersiz", () => onMenuTap(6)),
+          _buildMenuItem(theme, Icons.self_improvement, "Meditasyon", () => onMenuTap(7)),
+          _buildMenuItem(theme, Icons.music_note, "Müzik", () => onMenuTap(3)), 
+          _buildMenuItem(theme, Icons.article_outlined, "Blog", () => onMenuTap(8)),
+          
           const Divider(),
           
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text("Çıkış Yap", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            title: const Text(
+              "Çıkış Yap", 
+              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+            ),
             onTap: () {
               Navigator.pop(context);
-              // Giriş ekranına yönlendirme kodu buraya gelecek
+              // Çıkış mantığı buraya
             },
           ),
         ],
@@ -49,10 +67,18 @@ _buildMenuItem(Icons.article_outlined, "Blog", () => onMenuTap(8)), // 8. Sayfa
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
+  // Yardımcı metodun içine 'theme' parametresini ekleyerek performansı koruyoruz
+  Widget _buildMenuItem(ThemeData theme, IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.primaryGreen),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      leading: Icon(
+        icon, 
+        // İkon rengi artık temanın ana rengini takip ediyor
+        color: theme.primaryColor,
+      ),
+      title: Text(
+        title, 
+        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+      ),
       onTap: onTap,
     );
   }
