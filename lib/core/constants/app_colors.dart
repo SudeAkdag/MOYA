@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  // Modern Pembe Tema (Figma Renkleri)
+  static const Color primaryPink = Color(0xFFF281D9);
+  static const Color secondaryPink = Color(0xFFBC186F);
+  static const Color backgroundDarkPink = Color(0xFF610544);
+  static const Color textMainPink = Color(0xFFFFE5D9);
+  static const Color textSubPink = Color(0xFFF4ACB7);
+  static const Color surfaceDarkPink = Color(0xFFBC186F);
+  
   // Tasarımdaki Ana Yeşil (Doğa Terapisi Teması için)
   static const Color primaryGreen = Color(0xFF2D6A4F); 
   static const Color secondaryGreen = Color(0xFF40916C);
