@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 
 class ExerciseScreen extends StatelessWidget {
   const ExerciseScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.darkBackground,
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      
       body: Center(
         child: Text(
           "Egzersiz Sayfası",
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white, fontSize: 18),
+      
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontSize: 18,
+            
+            fontWeight: FontWeight.w500, 
+          ),
         ),
       ),
     );

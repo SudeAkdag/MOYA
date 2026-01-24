@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:moya/core/theme/app_theme.dart';
 
 // Import yolları burada. Kendi klasör yapına göre kontrol et.
 import 'core/theme/bloc/theme_bloc.dart';
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'MindSpace',
             debugShowCheckedModeBanner: false,
-            theme: state.themeData,
+            theme: AppThemes.getTheme(AppThemeType.ocean),
             home: const MainWrapper(),
           );
         },
