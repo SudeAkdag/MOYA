@@ -4,8 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 enum AppThemeType {
   nature,   // Orman Teması
   ocean,    // Okyanus
-  sunset,   // Gün Batımı
-  lavender, // Lavanta
+  brown,   // Kahverengi
+  pink, // Pembe 
+  purple, // Mor
   night,    // Gece
 }
 
@@ -35,29 +36,38 @@ class AppThemes {
           textColor: const Color(0xFF0D1B2A),  
         );
 
-      case AppThemeType.sunset:
+      case AppThemeType.brown:
         return _buildTheme(
-          primary: const Color(0xFFFF9800),
-          background: const Color(0xFFF9F4EA),
-          surface: const Color(0xFF4E342E),
-          textColor: const Color(0xFF2D1B0E),
+          primary: const Color(0xFF99582A),
+          background: const Color(0xFFFAF6F0),
+          surface: const Color(0xFFE6CCB2),
+          textColor: const Color(0xFF432818),
         );
 
-      case AppThemeType.lavender:
+      case AppThemeType.pink:// Artık Pembe/Sakura Teması oldu
         return _buildTheme(
-          primary: const Color(0xFF9C27B0),
-          background: const Color(0xFFF9F4EA),
-          surface: const Color(0xFF2D1B36),
-          textColor: const Color(0xFF1A1025),
+          primary: const Color(0xFFBC186F),    // Canlı Koyu Pembe
+          background: const Color(0xFFFFE5D9), // En Açık Ton (Arka Plan)
+          surface: const Color(0xFFF4ACB7),    // Kart Rengi (Tatlı Pembe)
+          textColor: const Color(0xFF610544),  // Yazı Rengi (Koyu Mürdüm)
         );
 
-      case AppThemeType.night:
+        case AppThemeType.night:
         return _buildTheme(
           primary: const Color(0xFF9E9E9E),
           background: const Color(0xFF000000),
           surface: const Color(0xFF121212),
           textColor: Colors.white,
         );
+
+     case AppThemeType.purple:
+        return _buildTheme(
+          primary: const Color(0xFF5A189A),
+          background: const Color(0xFFFDFCFF),
+          surface: const Color(0xFFE0AAFF),
+          textColor: const Color(0xFF240442),
+        );
+
     }
   }
 
@@ -101,7 +111,7 @@ class AppThemes {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: background, // Arka plan ile aynı (En açık ton)
         selectedItemColor: primary,  // Seçili ikon Buton rengi
-        unselectedItemColor: textColor.withOpacity(0.5), // Seçili olmayanlar silik yazı rengi
+  unselectedItemColor: textColor.withValues(alpha: 0.5), // Seçili olmayanlar silik yazı rengi
         type: BottomNavigationBarType.fixed,
         elevation: 0, 
       ),
