@@ -86,7 +86,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: theme.primaryColor.withOpacity(glowValue),
+                    color: theme.primaryColor.withAlpha((glowValue * 255).toInt()),
                     blurRadius: glowRadius,
                     spreadRadius: 5,
                   ),
@@ -105,7 +105,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
-              border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+              border: Border.all(color: Colors.white.withAlpha((0.4 * 255).toInt()), width: 2),
             ),
             child: const Center(
               child: Icon(Icons.smart_toy_outlined, color: Colors.white, size: 32),

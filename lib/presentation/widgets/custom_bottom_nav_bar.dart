@@ -20,7 +20,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return SizedBox(
       height: 120, // Provides space for the raised button
       child: Stack(
         children: [
@@ -43,7 +43,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildNavItem(Icons.fitness_center, 'Egzersiz', 0, theme),
+                      _buildNavItem(Icons.self_improvement, 'E & M', 0, theme),
                       _buildNavItem(Icons.music_note_outlined, 'Müzik', 1, theme),
                       const SizedBox(width: 56), // Space for central button
                       _buildNavItem(Icons.calendar_month_outlined, 'Takvim', 3, theme),
