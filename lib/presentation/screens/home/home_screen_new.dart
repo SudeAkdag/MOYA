@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:moya/presentation/screens/chatbot/chatbot_screen.dart';
 
 class HomeScreenNew extends StatefulWidget {
   const HomeScreenNew({super.key});
@@ -74,7 +75,10 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
       right: 24,
       child: GestureDetector(
         onTap: () {
-          // TODO: AI Assistant tap action
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatbotScreen()),
+          );
         },
         child: AnimatedBuilder(
           animation: _glowController,
@@ -122,7 +126,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
       floating: true,
       snap: true,
       expandedHeight: 100.0,
-      backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.85),
+      backgroundColor: theme.scaffoldBackgroundColor.withAlpha(217),
       elevation: 0,
       automaticallyImplyLeading: false, // Disables default back button
       flexibleSpace: ClipRRect(
@@ -141,7 +145,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
-                    color: Colors.white.withOpacity(0.9)
+                    color: Colors.white.withAlpha(230)
                   ),
                 ),
               ],
@@ -224,7 +228,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
 
   Widget _buildEmergencySupport(BuildContext context) {
     return Material(
-      color: Colors.red.withOpacity(0.1),
+      color: Colors.red.withAlpha(25),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: () {},
@@ -233,7 +237,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.red.withOpacity(0.3)),
+            border: Border.all(color: Colors.red.withAlpha(77)),
           ),
           child: Row(
             children: [
@@ -241,7 +245,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.2),
+                  color: Colors.red.withAlpha(51),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.support_agent, color: Colors.redAccent),
@@ -257,7 +261,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, color: Colors.redAccent.withOpacity(0.4), size: 14),
+              Icon(Icons.arrow_forward_ios, color: Colors.redAccent.withAlpha(102), size: 14),
             ],
           ),
         ),
@@ -285,7 +289,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
   Widget _moodOption(BuildContext context, String emoji, String text, Color color, {bool isSelected = false}) {
     final theme = Theme.of(context);
     return Material(
-      color: isSelected ? color.withOpacity(0.2) : theme.cardTheme.color,
+      color: isSelected ? color.withAlpha(51) : theme.cardTheme.color,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: () {},
@@ -293,7 +297,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isSelected ? color : Colors.white.withOpacity(0.05)),
+            border: Border.all(color: isSelected ? color : Colors.white.withAlpha(12)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -321,14 +325,14 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withAlpha(25)),
         gradient: const LinearGradient(
           colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10)
+          BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 10)
         ]
       ),
       child: Column(
@@ -347,7 +351,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
             textAlign: TextAlign.center,
             style: GoogleFonts.lora(
               textStyle: textTheme.titleMedium?.copyWith(
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withAlpha(230),
                 fontStyle: FontStyle.italic,
                 height: 1.5,
               ),
@@ -370,9 +374,9 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withAlpha(25),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+                border: Border.all(color: theme.primaryColor.withAlpha(51)),
               ),
               child: Row(
                 children: [
@@ -390,8 +394,8 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 20, spreadRadius: -10)],
+              border: Border.all(color: Colors.white.withAlpha(12)),
+              boxShadow: [BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 20, spreadRadius: -10)],
               image: const DecorationImage(
                 image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCFtbal5YrjiXvO8see1DK3HkaA9Gl5AOLsa9d7PnBapTVwCrSVwYoego0j3gLmVREoNVMigzPK0Fm39V4Hz7tF28K8bRDDg38n9w4_VelQI67QfFVNulIdY75nxO2qFCGBu6Hl9Q84KYz4nzfe-w9PtSC4sEmR-eJcA04pzsf4VZ0rCVOsXP9eQtT1xBWFmCOTXQJNt-exMuAFwNfQuIi7UGuz_vVwFKRPuTiTeo2HaYAZd79XKUJyB7zJiDSZcri8Cop0-u0XH9h1'),
                 fit: BoxFit.cover,
@@ -405,7 +409,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
                     gradient: LinearGradient(
-                      colors: [theme.scaffoldBackgroundColor, theme.scaffoldBackgroundColor.withOpacity(0)],
+                      colors: [theme.scaffoldBackgroundColor, theme.scaffoldBackgroundColor.withAlpha(0)],
                       begin: Alignment.bottomCenter,
                       end: Alignment.center,
                     ),
@@ -423,9 +427,9 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withAlpha(25),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.2)),
+                          border: Border.all(color: Colors.white.withAlpha(51)),
                         ),
                         child: const Icon(Icons.play_arrow, color: Colors.white),
                       ),
@@ -482,9 +486,9 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withAlpha(25),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withAlpha(25)),
           ),
           child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
         ),
