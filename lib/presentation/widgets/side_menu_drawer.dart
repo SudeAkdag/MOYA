@@ -44,10 +44,10 @@ class SideMenuDrawer extends StatelessWidget {
 
           // Menü Öğeleri
           _buildMenuItem(theme, Icons.person_outline, "Profil", () => onMenuTap(5)),
-          _buildMenuItem(theme, Icons.fitness_center, "Egzersiz", () => onMenuTap(6)),
-          _buildMenuItem(theme, Icons.self_improvement, "Meditasyon", () => onMenuTap(7)),
-          _buildMenuItem(theme, Icons.music_note, "Müzik", () => onMenuTap(3)), 
-          _buildMenuItem(theme, Icons.article_outlined, "Blog", () => onMenuTap(8)),
+          _buildMenuItem(theme, Icons.fitness_center, "Egzersiz", () => onMenuTap(0)),
+          _buildMenuItem(theme, Icons.self_improvement, "Meditasyon", () => onMenuTap(8)),
+          _buildMenuItem(theme, Icons.music_note, "Müzik", () => onMenuTap(1)), 
+          _buildMenuItem(theme, Icons.article_outlined, "Blog", () => onMenuTap(4)),
           
           const Divider(),
           
