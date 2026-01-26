@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../presentation/widgets/side_menu_drawer.dart'; 
-import 'home/home_screen.dart';
+import 'package:moya/presentation/widgets/custom_bottom_nav_bar.dart';
+import '../../presentation/widgets/side_menu_drawer.dart';
+import 'home/home_screen_new.dart'; // Yeni ana sayfa
 import 'music/music_screen.dart';
-import 'chatbot/chatbot_screen.dart';
-import 'favorites/favorites_screen.dart';
 import 'blog/blog_screen.dart';
 import 'exercise/exercise_screen.dart';
 import 'meditation/meditation_screen.dart';
 import 'profile/profile_screen.dart';
+import 'favorites/favorites_screen.dart';
+import 'chatbot/chatbot_screen.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -18,110 +19,79 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _currentIndex = 2; // Başlangıç: Home
+  
+  // Yeni navigasyon düzenine göre index'ler
+  // 0: Egzersiz, 1: Müzik, 2: Ana Sayfa, 3: Takvim, 4: Blog
+  int _currentIndex = 2; // Başlangıç: Ana Sayfa
 
-  final List<Widget> _pages = const [
-    SizedBox(),              // 0: Menü Tetikleyici
-    ChatbotScreen(),        // 1: Asistan
-    HomeScreen(),           // 2: Ana Sayfa
-    MusicScreen(),          // 3: Müzik
-    FavoritesScreen(),      // 4: Favoriler
-    ProfileScreen(),        // 5: Profil
-    ExerciseScreen(),       // 6: Egzersiz
-    MeditationScreen(),     // 7: Meditasyon
-    BlogScreen(),           // 8: Blog
+  // Sayfa listesini yeni tasarıma göre güncelle
+  // SideMenu'dan gelen index'leri de yönetebilmek için geniş bir liste tutuyoruz.
+  static const List<Widget> _allPages = [
+    ExerciseScreen(),       // 0 -> Nav Bar 0
+    MusicScreen(),          // 1 -> Nav Bar 1
+    HomeScreenNew(),        // 2 -> Nav Bar 2 (Ana Sayfa)
+    SizedBox(child: Center(child: Text("Takvim (Yakında)"))), // 3 -> Nav Bar 3
+    BlogScreen(),           // 4 -> Nav Bar 4
+    // Alt kısımdakiler SideMenu'den erişilenler
+    ProfileScreen(),        // 5
+    FavoritesScreen(),      // 6
+    ChatbotScreen(),        // 7
+    MeditationScreen(),     // 8
   ];
 
-  void _changePage(int index) {
+  // Gösterilecek mevcut sayfa
+  Widget _getCurrentPage() {
+    // Navigasyon barı index'leri doğrudan _allPages'deki ilk 5 sayfaya karşılık gelir.
+    if (_currentIndex >= 0 && _currentIndex < 5) {
+      return _allPages[_currentIndex];
+    }
+    // SideMenu'den gelen diğer index'ler için
+    switch (_currentIndex) {
+      case 5: return _allPages[5]; // Profil
+      case 6: return _allPages[6]; // Favoriler
+      case 7: return _allPages[7]; // Asistan
+      case 8: return _allPages[8]; // Meditasyon
+      default: return _allPages[2]; // Varsayılan Ana Sayfa
+    }
+  }
+
+  void _onItemTapped(int index) {
     if (_currentIndex != index) {
-      setState(() => _currentIndex = index);
+      setState(() {
+        _currentIndex = index;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isWideLayout = MediaQuery.of(context).size.width > 720;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWideLayout = constraints.maxWidth > 720;
-
-        return Scaffold(
-          key: _scaffoldKey,
-          extendBody: true, // Bottom bar arkasının görünmesi için
-          drawer: isWideLayout 
-              ? null 
-              : SideMenuDrawer(onMenuTap: (index) {
-                  _changePage(index);
-                  Navigator.pop(context);
-                }),
-          body: Row(
-            children: [
-              if (isWideLayout) ...[
-                SideMenuDrawer(onMenuTap: _changePage),
-                VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor.withValues(alpha: 0.1)),
-              ],
-              Expanded(child: _pages[_currentIndex]),
-            ],
-          ),
-          bottomNavigationBar: isWideLayout ? null : _buildBottomNavBar(theme),
-        );
-      },
-    );
-  }
-
-  Widget _buildBottomNavBar(ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      decoration: BoxDecoration(
-        // Kart rengini (surface) arka plan yapıyoruz
-        color: theme.cardTheme.color, 
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
+    return Scaffold(
+      key: _scaffoldKey,
+      extendBody: true, // Bottom bar arkasının görünmesi için
+      drawer: isWideLayout
+          ? null
+          : SideMenuDrawer(onMenuTap: (index) {
+              _onItemTapped(index);
+              Navigator.pop(context);
+            }),
+      body: Row(
+        children: [
+          if (isWideLayout) ...[
+            SideMenuDrawer(onMenuTap: _onItemTapped),
+            VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor.withOpacity(0.1)),
+          ],
+          Expanded(child: _getCurrentPage()),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BottomNavigationBar(
-          // Menü dışındaki indexleri Ana Sayfa (2) olarak işaretle
-          currentIndex: _currentIndex > 4 ? 2 : _currentIndex,
-          onTap: (index) {
-            if (index == 0) {
-              _scaffoldKey.currentState?.openDrawer();
-            } else {
-              _changePage(index);
-            }
-          },
-          // Tema verilerini kullanıyoruz
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: theme.primaryColor,
-          unselectedItemColor: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.4),
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.menu_rounded), label: 'Menü'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline_rounded),
-              activeIcon: Icon(Icons.chat_bubble_rounded),
-              label: 'Asistan',
+      bottomNavigationBar: isWideLayout 
+          ? null 
+          : CustomBottomNavBar(
+              selectedIndex: _currentIndex,
+              onItemTapped: _onItemTapped,
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded, size: 30), label: 'Ana Sayfa'),
-            BottomNavigationBarItem(icon: Icon(Icons.music_note_rounded), label: 'Müzik'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border_rounded),
-              activeIcon: Icon(Icons.favorite_rounded),
-              label: 'Favoriler',
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
