@@ -9,6 +9,7 @@ import 'profile/profile_screen.dart';
 import 'favorites/favorites_screen.dart';
 import 'chatbot/chatbot_screen.dart';
 import 'settings/settings_screen.dart';
+import 'package:moya/presentation/screens/calendar/calendar_screen.dart';
 import 'about/about_screen.dart';
 
 class MainWrapper extends StatefulWidget {
@@ -31,9 +32,7 @@ class _MainWrapperState extends State<MainWrapper> {
     MeditationScreen(), // 8 // 0 -> Nav Bar 0
     MusicScreen(), // 1 -> Nav Bar 1
     HomeScreenNew(), // 2 -> Nav Bar 2 (Ana Sayfa)
-    SizedBox(
-        child: Center(
-            child: Text("Takvim (Yakında)"))), // 3 -> Nav Bar 3
+    CalendarScreen(), // 3 -> Nav Bar 3
     BlogScreen(), // 4 -> Nav Bar 4
     // Alt kısımdakiler SideMenu'dan erişilenler
     ProfileScreen(), // 5
@@ -78,7 +77,7 @@ class _MainWrapperState extends State<MainWrapper> {
         children: [
           if (isWideLayout) ...[
             SideMenuDrawer(onMenuTap: _onItemTapped),
-            VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor.withOpacity(0.1)),
+            VerticalDivider(width: 1, thickness: 1, color: theme.dividerColor.withAlpha(100)),
           ],
           Expanded(child: _getCurrentPage()),
         ],

@@ -84,7 +84,6 @@ class AppThemes {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         brightness: brightness,
-        background: background,
         surface: surface,
       ).copyWith(
         secondary: accentColor,
@@ -122,12 +121,12 @@ class AppThemes {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: background,
         selectedItemColor: primary,
-        unselectedItemColor: textColor.withOpacity(0.5),
+        unselectedItemColor: textColor.withAlpha(100),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
 
-      iconTheme: IconThemeData(color: textColor.withOpacity(0.9)),
+      iconTheme: IconThemeData(color: textColor.withAlpha(230)),
 
       // AppBar Ayarları
       appBarTheme: AppBarTheme(

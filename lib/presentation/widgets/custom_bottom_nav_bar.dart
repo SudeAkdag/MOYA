@@ -36,9 +36,9 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                 child: Container(
                   height: 80,
                   decoration: BoxDecoration(
-                    color: theme.cardTheme.color!.withOpacity(0.6),
+                    color: theme.cardTheme.color!.withAlpha(100),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(color: Colors.white.withAlpha(100)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -70,7 +70,7 @@ class _CustomBottomNavBarState extends State<CustomBottomNavBar> {
                   border: Border.all(color: theme.scaffoldBackgroundColor, width: 6),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.primaryColor.withOpacity(0.4),
+                      color: theme.primaryColor.withAlpha(100),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     )
