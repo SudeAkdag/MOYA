@@ -98,7 +98,7 @@ class AppThemes {
         ),
       ),
 
-      // Yazı Ayarları
+      
       textTheme: (isDark
               ? GoogleFonts.interTextTheme(ThemeData.dark().textTheme)
               : GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme)

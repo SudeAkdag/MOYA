@@ -29,16 +29,18 @@ class LoginViewModel extends ChangeNotifier {
 
   // --- BURAYI EKLEDİK ---
   // Çıkış yapma fonksiyonu
+// Çıkış yapma fonksiyonu
   Future<void> logout() async {
-    _setLoading(true);
+    // Çıkış işleminde genellikle loading'e gerek yoktur, 
+    // çünkü zaten sayfadan ayrılıyoruz.
     _errorMessage = null;
     try {
       await _authService.logout();
-      // Çıkış başarılı olduğunda loading'i kapatıyoruz
-      _setLoading(false);
+      // Önemli: Burada _setLoading(false) veya notifyListeners() 
+      // çağırmaktan kaçınmalıyız çünkü widget ağacı o sırada yok ediliyor olabilir.
     } catch (e) {
       _errorMessage = "Çıkış yapılırken bir hata oluştu: $e";
-      _setLoading(false);
+      notifyListeners(); // Sadece hata varsa haber ver
     }
   }
 

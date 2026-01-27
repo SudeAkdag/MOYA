@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Eklendi
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moya/core/theme/app_theme.dart';
 import 'core/theme/bloc/theme_bloc.dart';
 import 'core/theme/bloc/theme_state.dart'; 
 import 'presentation/screens/auth/login/login_screen.dart';
 import 'presentation/screens/auth/login/login_view_model.dart';
-import 'presentation/screens/main_wrapper.dart'; // Ana sayfan
+import 'presentation/screens/main_wrapper.dart';
+
+// 🔑 GLOBAL NAVIGATOR KEY
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 
 void main() async {
-  // Flutter motorunun disk okuma gibi async işlemler bitmeden başlamasını sağlar
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Diskteki oturum bilgisini oku
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
@@ -34,10 +36,10 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
           return MaterialApp(
+            navigatorKey: navigatorKey, // 🔑 bağlandı
             title: 'MOYA',
             debugShowCheckedModeBanner: false,
             theme: AppThemes.getTheme(AppThemeType.ocean),
-            // Koşul: Giriş yapılmışsa MainWrapper, yapılmamışsa LoginScreen
             home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
           );
         },

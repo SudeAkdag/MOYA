@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moya/main.dart'; // 🔥 navigatorKey buradan gelmeli
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/auth/login/login_screen.dart';
@@ -69,24 +70,22 @@ class SideMenuDrawer extends StatelessWidget {
       ),
     );
   }
+void _handleLogout(BuildContext context, LoginViewModel viewModel) async {
+  // Drawer'ı kapat
+  Navigator.of(context).pop();
 
-  // Güvenli Çıkış Mantığı
-  void _handleLogout(BuildContext context, LoginViewModel viewModel) async {
-    Navigator.pop(context); // Menüyü kapat
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLoggedIn', false);
 
-    // --- BURAYI EKLEDİK: Oturumu Sil ---
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
+  // API logout
+  await viewModel.logout();
 
-    await viewModel.logout();
-
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-        (Route<dynamic> route) => false,
-      );
-    }
-  }
+  // 🔥 TÜM STACK'İ SİL → LOGIN'E GİT
+  navigatorKey.currentState!.pushAndRemoveUntil(
+    MaterialPageRoute(builder: (_) => const LoginScreen()),
+    (route) => false,
+  );
+}
 
   Widget _buildMenuItem(ThemeData theme, IconData icon, String title, VoidCallback onTap) {
     return ListTile(

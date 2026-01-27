@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moya/main.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Paket eklendi
 import '../widgets/auth_text_field.dart';
@@ -80,21 +81,24 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      // --- BURAYI EKLEDİK: Oturumu Kaydet ---
+      // 1. Oturumu Kaydet
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
 
+      // 2. Navigasyon (En sağlam yöntem)
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
-        );
+        // pushAndRemoveUntil kullanarak arkadaki her şeyi temizleyip temiz bir sayfa açıyoruz
+        navigatorKey.currentState!.pushAndRemoveUntil(
+  MaterialPageRoute(builder: (_) => const MainWrapper()),
+  (route) => false,
+);
+
       }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(viewModel.errorMessage ?? "Giriş başarısız"),
-          backgroundColor: theme.colorScheme.primary.withOpacity(0.9), // Mavi tonlu
+          backgroundColor: theme.colorScheme.error, // Hata olduğu için error rengi daha mantıklı
           behavior: SnackBarBehavior.floating,
         ),
       );
