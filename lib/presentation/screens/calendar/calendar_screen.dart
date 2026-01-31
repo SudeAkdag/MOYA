@@ -10,15 +10,82 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   late DateTime _displayedMonth;
-  late DateTime _selectedDay;
+  late DateTime _selectedDayDate;
   final Map<DateTime, List<String>> _notes = {};
+  String _selectedDay = 'Çar'; // Default to Wednesday
+
+  // Mock data for each day
+  final Map<String, Map<String, dynamic>> _dayData = {
+    'Pzt': {
+      'mood': 'Mutlu',
+      'moodSubtitle': 'Haftaya enerjik başladın!',
+      'mostFeltEmotion': 'Neşeli',
+      'completedGoals': 8,
+      'averageEnergy': 8.2,
+      'notes': ['Pazartesi notu 1', 'Pazartesi notu 2'],
+    },
+    'Sal': {
+      'mood': 'Sakin',
+      'moodSubtitle': 'Bugün oldukça dingindi.',
+      'mostFeltEmotion': 'Huzurlu',
+      'completedGoals': 10,
+      'averageEnergy': 7.8,
+      'notes': ['Salı için bir not.'],
+    },
+    'Çar': {
+      'mood': 'Dengeli',
+      'moodSubtitle': 'Duygu durumun bu hafta dengeli.',
+      'mostFeltEmotion': 'Kaygılı',
+      'completedGoals': 12,
+      'averageEnergy': 7.5,
+      'notes': [],
+    },
+    'Per': {
+      'mood': 'Yorgun',
+      'moodSubtitle': 'Biraz dinlenmeye ihtiyacın var gibi.',
+      'mostFeltEmotion': 'Stresli',
+      'completedGoals': 5,
+      'averageEnergy': 4.5,
+      'notes': ['Perşembe günü yapılacaklar...'],
+    },
+    'Cum': {
+      'mood': 'Heyecanlı',
+      'moodSubtitle': 'Hafta sonu planları hazır mı?',
+      'mostFeltEmotion': 'Heyecanlı',
+      'completedGoals': 14,
+      'averageEnergy': 9.0,
+      'notes': ['Cuma akşamı sinema!', 'Arkadaşlarla buluşulacak.'],
+    },
+    'Cmt': {
+      'mood': 'Rahat',
+      'moodSubtitle': 'Hafta sonunun tadını çıkar.',
+      'mostFeltEmotion': 'Rahat',
+      'completedGoals': 15,
+      'averageEnergy': 8.8,
+      'notes': [],
+    },
+    'Paz': {
+      'mood': 'Huzurlu',
+      'moodSubtitle': 'Yeni haftaya hazırlanıyorsun.',
+      'mostFeltEmotion': 'Huzurlu',
+      'completedGoals': 11,
+      'averageEnergy': 7.0,
+      'notes': ['Pazar sabahı kahvaltısı.'],
+    },
+  };
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _displayedMonth = DateTime(now.year, now.month, 1);
-    _selectedDay = DateTime(now.year, now.month, now.day);
+    _selectedDayDate = DateTime(now.year, now.month, now.day);
+  }
+
+  void _handleDaySelected(String day) {
+    setState(() {
+      _selectedDay = day;
+    });
   }
 
   DateTime _dateOnly(DateTime date) =>
@@ -42,14 +109,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _addNote(String text) {
     if (text.trim().isEmpty) return;
-    final dayKey = _dateOnly(_selectedDay);
+    final dayKey = _dateOnly(_selectedDayDate);
     setState(() {
       _notes[dayKey] = [...(_notes[dayKey] ?? []), text.trim()];
     });
   }
 
   void _deleteNote(int index) {
-    final dayKey = _dateOnly(_selectedDay);
+    final dayKey = _dateOnly(_selectedDayDate);
     setState(() {
       _notes[dayKey]?.removeAt(index);
       if (_notes[dayKey]?.isEmpty ?? false) {
@@ -78,7 +145,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     const Color moyaDark = Color(0xFF0D1B2A);
-    final currentNotes = _notes[_dateOnly(_selectedDay)];
+    final currentNotes = _notes[_dateOnly(_selectedDayDate)];
+    final dayData = _dayData[_selectedDay]!;
+
 
     return Scaffold(
       backgroundColor: moyaDark,
@@ -88,6 +157,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _SliverContent(
+                dayData: dayData,
                 notes: currentNotes,
                 onNoteButtonTap: () => _showNoteEntry(context),
                 onDeleteNote: _deleteNote,
@@ -121,9 +191,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ],
         ),
       ),
-      bottom: const PreferredSize(
-        preferredSize: Size.fromHeight(90.0),
-        child: _HorizontalCalendarStrip(),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(90.0),
+        child: _HorizontalCalendarStrip(onDaySelected: _handleDaySelected),
       ),
     );
   }
@@ -131,14 +201,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
 // Content for the SliverList
 class _SliverContent extends StatelessWidget {
+  final Map<String, dynamic> dayData;
   final List<String>? notes;
   final VoidCallback onNoteButtonTap;
   final ValueChanged<int> onDeleteNote;
 
-  const _SliverContent(
-      {this.notes,
-      required this.onNoteButtonTap,
-      required this.onDeleteNote});
+  const _SliverContent({
+    required this.dayData,
+    this.notes,
+    required this.onNoteButtonTap,
+    required this.onDeleteNote,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -148,9 +221,16 @@ class _SliverContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-          const _WeeklyMoodChart(),
+          _WeeklyMoodChart(
+            mood: dayData['mood'],
+            subtitle: dayData['moodSubtitle'],
+          ),
           const SizedBox(height: 24),
-          const _StatisticsSection(),
+          _StatisticsSection(
+            mostFeltEmotion: dayData['mostFeltEmotion'],
+            completedGoals: dayData['completedGoals'],
+            averageEnergy: dayData['averageEnergy'],
+          ),
           const SizedBox(height: 24),
           _DailyNoteButton(onTap: onNoteButtonTap),
           if (notes != null)
@@ -237,22 +317,32 @@ class _MonthSelector extends StatelessWidget {
   }
 }
 
-class _HorizontalCalendarStrip extends StatelessWidget {
-  const _HorizontalCalendarStrip();
+class _HorizontalCalendarStrip extends StatefulWidget {
+  final Function(String) onDaySelected;
+
+  const _HorizontalCalendarStrip({required this.onDaySelected});
+
+  @override
+  _HorizontalCalendarStripState createState() =>
+      _HorizontalCalendarStripState();
+}
+
+class _HorizontalCalendarStripState extends State<_HorizontalCalendarStrip> {
+  String _selectedDay = 'Çar'; // Default selected day
+
+  // Mock data
+  final List<Map<String, Object?>> days = [
+    {'day': 'Pzt', 'date': '16', 'moodColor': Colors.blue[400], 'active': false},
+    {'day': 'Sal', 'date': '17', 'moodColor': Colors.teal[400], 'active': false},
+    {'day': 'Çar', 'date': '18', 'moodColor': const Color(0xFF0D1B2A), 'active': true},
+    {'day': 'Per', 'date': '19', 'moodColor': Colors.purple[400], 'active': false},
+    {'day': 'Cum', 'date': '20', 'moodColor': null, 'active': false},
+    {'day': 'Cmt', 'date': '21', 'moodColor': null, 'active': false},
+    {'day': 'Paz', 'date': '22', 'moodColor': null, 'active': false},
+  ];
 
   @override
   Widget build(BuildContext context) {
-    // Mock data
-    final days = [
-      {'day': 'Pzt', 'date': '16', 'moodColor': Colors.blue[400], 'active': false},
-      {'day': 'Sal', 'date': '17', 'moodColor': Colors.teal[400], 'active': false},
-      {'day': 'Çar', 'date': '18', 'moodColor': const Color(0xFF0D1B2A), 'active': true},
-      {'day': 'Per', 'date': '19', 'moodColor': Colors.purple[400], 'active': false},
-      {'day': 'Cum', 'date': '20', 'moodColor': null, 'active': false},
-      {'day': 'Cmt', 'date': '21', 'moodColor': null, 'active': false},
-      {'day': 'Paz', 'date': '22', 'moodColor': null, 'active': false},
-    ];
-
     return SizedBox(
       height: 90,
       child: SingleChildScrollView(
@@ -261,12 +351,20 @@ class _HorizontalCalendarStrip extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          children: days.map((day) => _DayItem(
-            day: day['day'] as String,
-            date: day['date'] as String,
-            moodColor: day['moodColor'] as Color?,
-            isActive: day['active'] as bool,
-          )).toList(),
+          children: days
+              .map((day) => _DayItem(
+                    day: day['day'] as String,
+                    date: day['date'] as String,
+                    moodColor: day['moodColor'] as Color?,
+                    isActive: _selectedDay == day['day'],
+                    onTap: () {
+                      setState(() {
+                        _selectedDay = day['day'] as String;
+                      });
+                      widget.onDaySelected(_selectedDay);
+                    },
+                  ))
+              .toList(),
         ),
       ),
     );
@@ -278,72 +376,81 @@ class _DayItem extends StatelessWidget {
   final String date;
   final Color? moodColor;
   final bool isActive;
+  final VoidCallback onTap;
 
   const _DayItem({
     required this.day,
     required this.date,
     this.moodColor,
     this.isActive = false,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     const Color accentBlue = Color(0xFF38BDF8);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            day.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-              color: isActive ? accentBlue : Colors.white54,
-              fontFamily: 'Inter',
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              day.toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                color: isActive ? accentBlue : Colors.white54,
+                fontFamily: 'Inter',
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isActive ? accentBlue : Colors.white.withAlpha(13),
-              borderRadius: BorderRadius.circular(16),
-              border: isActive ? null : Border.all(color: Colors.white.withAlpha(26)),
-              boxShadow: isActive ? [
-                BoxShadow(
-                    color: accentBlue.withAlpha(77),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5))
-              ] : [],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  date,
-                  style: TextStyle(
-                    color: isActive ? const Color(0xFF0D1B2A) : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    fontFamily: 'Inter',
+            const SizedBox(height: 8),
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: isActive ? accentBlue : Colors.white.withAlpha(13),
+                borderRadius: BorderRadius.circular(16),
+                border: isActive
+                    ? null
+                    : Border.all(color: Colors.white.withAlpha(26)),
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                            color: accentBlue.withAlpha(77),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5))
+                      ]
+                    : [],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    date,
+                    style: TextStyle(
+                      color: isActive ? const Color(0xFF0D1B2A) : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: 'Inter',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: moodColor ?? Colors.transparent,
-                    shape: BoxShape.circle,
+                  const SizedBox(height: 2),
+                  Container(
+                    width: 5,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: moodColor ?? Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -352,7 +459,10 @@ class _DayItem extends StatelessWidget {
 // --- Body Widgets ---
 
 class _WeeklyMoodChart extends StatelessWidget {
-  const _WeeklyMoodChart();
+  final String mood;
+  final String subtitle;
+
+  const _WeeklyMoodChart({required this.mood, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -360,9 +470,7 @@ class _WeeklyMoodChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionHeader(
-              title: 'Haftalık Ruh Hali',
-              subtitle: 'Duygu durumun bu hafta dengeli.'),
+          _SectionHeader(title: 'Haftalık Ruh Hali', subtitle: subtitle),
           const SizedBox(height: 16),
           SizedBox(
             height: 180,
@@ -378,7 +486,15 @@ class _WeeklyMoodChart extends StatelessWidget {
 }
 
 class _StatisticsSection extends StatelessWidget {
-  const _StatisticsSection();
+  final String mostFeltEmotion;
+  final int completedGoals;
+  final double averageEnergy;
+
+  const _StatisticsSection({
+    required this.mostFeltEmotion,
+    required this.completedGoals,
+    required this.averageEnergy,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -389,7 +505,7 @@ class _StatisticsSection extends StatelessWidget {
         const SizedBox(height: 16),
         _StatCard(
           title: 'En Çok Hissettiğin Duygu',
-          value: 'Kaygılı',
+          value: mostFeltEmotion,
           subtitle: 'Son 7 günde 3 kez',
           icon: Icons.sentiment_dissatisfied,
           iconColor: Colors.indigo[300]!,
@@ -402,7 +518,7 @@ class _StatisticsSection extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 title: 'Tamamlanan Hedefler',
-                value: '12',
+                value: completedGoals.toString(),
                 subtitle: '/15',
                 icon: Icons.check_circle,
                 iconColor: Colors.green[400]!,
@@ -413,7 +529,7 @@ class _StatisticsSection extends StatelessWidget {
             Expanded(
               child: _StatCard(
                 title: 'Ortalama Enerjin',
-                value: '7.5',
+                value: averageEnergy.toString(),
                 icon: Icons.bolt,
                 iconColor: Colors.yellow[400]!,
                 iconBgColor: Colors.yellow.withAlpha(51),

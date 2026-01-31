@@ -47,7 +47,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
                     [
                       const SizedBox(height: 24),
                       _buildGreeting(textTheme),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       _buildEmergencySupport(context),
                       const SizedBox(height: 12), // Further reduced space
                       _buildMoodSelector(context, textTheme),
