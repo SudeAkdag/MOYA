@@ -12,6 +12,18 @@ class HomeScreenNew extends StatefulWidget {
 
 class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateMixin {
   late final AnimationController _glowController;
+  String _selectedMood = 'Dengede';
+
+  final List<Map<String, dynamic>> _moods = [
+    {'emoji': '😔', 'text': 'Tükenmiş', 'color': Colors.indigo},
+    {'emoji': '✨', 'text': 'Umutlu', 'color': Colors.yellow},
+    {'emoji': '😰', 'text': 'Kaygılı', 'color': Colors.purple},
+    {'emoji': '⚖️', 'text': 'Dengede', 'color': Colors.teal},
+    {'emoji': '😄', 'text': 'Mutlu', 'color': Colors.orange},
+    {'emoji': '😠', 'text': 'Kızgın', 'color': Colors.red},
+    {'emoji': '😥', 'text': 'Üzgün', 'color': Colors.blue},
+  ];
+
 
   @override
   void initState() {
@@ -234,7 +246,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
         onTap: () {},
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.red.withAlpha(77)),
@@ -270,49 +282,63 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
   }
 
   Widget _buildMoodSelector(BuildContext context, TextTheme textTheme) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.5,
-      children: [
-        _moodOption(context, '😔', 'Tükenmiş', Colors.indigo),
-        _moodOption(context, '✨', 'Umutlu', Colors.yellow),
-        _moodOption(context, '😰', 'Kaygılı', Colors.purple),
-        _moodOption(context, '⚖️', 'Dengede', Colors.teal, isSelected: true),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(_moods.length, (index) {
+          final mood = _moods[index];
+          final text = mood['text'] as String;
+          return Padding(
+            padding: EdgeInsets.only(right: index == _moods.length - 1 ? 0 : 12),
+            child: _moodOption(
+              context,
+              mood['emoji'] as String,
+              text,
+              mood['color'] as Color,
+              isSelected: _selectedMood == text,
+              onTap: () {
+                setState(() {
+                  _selectedMood = text;
+                });
+              },
+            ),
+          );
+        }),
+      ),
     );
   }
 
-  Widget _moodOption(BuildContext context, String emoji, String text, Color color, {bool isSelected = false}) {
+  Widget _moodOption(BuildContext context, String emoji, String text, Color color,
+      {required bool isSelected, required VoidCallback onTap}) {
     final theme = Theme.of(context);
     return Material(
       color: isSelected ? color.withAlpha(51) : theme.cardTheme.color,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: isSelected ? color : Colors.white.withAlpha(12)),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 32)),
-              const SizedBox(height: 8),
-              Text(
-                text,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : Colors.grey[300],
-                  fontSize: 12,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 32)),
+                const SizedBox(height: 8),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.grey[300],
+                    fontSize: 12,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -322,7 +348,7 @@ class _HomeScreenNewState extends State<HomeScreenNew> with TickerProviderStateM
   Widget _buildDailyIntention(BuildContext context, TextTheme textTheme) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withAlpha(25)),
