@@ -82,7 +82,7 @@ class _HomeAppBar extends StatelessWidget {
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
-                    color: Colors.white.withAlpha(230),
+                    color: theme.colorScheme.onBackground.withAlpha(230),
                   ),
                 ),
               ],
@@ -96,10 +96,10 @@ class _HomeAppBar extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             // Burası artık MainWrapper'daki Drawer'ı tetikliyor.
-            onTap: onMenuTap, 
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Icon(Icons.menu, size: 30, color: Colors.white),
+            onTap: onMenuTap,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.menu, size: 30, color: theme.colorScheme.onBackground),
             ),
           ),
         ),
@@ -125,10 +125,10 @@ class _HomeAppBar extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: theme.cardTheme.color,
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
                     'SÖ',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface),
                   ),
                 ),
               ),
@@ -155,7 +155,7 @@ class _Greeting extends StatelessWidget {
         Text.rich(
           TextSpan(
             text: 'Merhaba, ',
-            style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w300, color: Colors.white),
+            style: textTheme.headlineMedium,
             children: [
               TextSpan(
                 text: 'Selin',
@@ -167,7 +167,7 @@ class _Greeting extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'Şu an nasıl hissediyorsun?',
-          style: textTheme.bodyMedium?.copyWith(color: Colors.grey[400], fontWeight: FontWeight.w500),
+          style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.6), fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -180,8 +180,9 @@ class _EmergencySupportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Material(
-      color: Colors.red.withAlpha(25),
+      color: theme.colorScheme.error.withAlpha(25),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: () {},
@@ -190,7 +191,7 @@ class _EmergencySupportCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.red.withAlpha(77)),
+            border: Border.all(color: theme.colorScheme.error.withAlpha(77)),
           ),
           child: Row(
             children: [
@@ -198,23 +199,23 @@ class _EmergencySupportCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.red.withAlpha(51),
+                  color: theme.colorScheme.error.withAlpha(51),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.support_agent, color: Colors.redAccent),
+                child: Icon(Icons.support_agent, color: theme.colorScheme.error),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Acil Destek', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                    SizedBox(height: 2),
-                    Text('Birileriyle konuşmaya ihtiyacım var', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                    Text('Acil Destek', style: TextStyle(color: theme.colorScheme.onBackground, fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 2),
+                    Text('Birileriyle konuşmaya ihtiyacım var', style: TextStyle(color: theme.colorScheme.error, fontSize: 12)),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, color: Colors.redAccent.withAlpha(102), size: 14),
+              Icon(Icons.arrow_forward_ios, color: theme.colorScheme.error.withAlpha(102), size: 14),
             ],
           ),
         ),
@@ -299,7 +300,7 @@ class _MoodOption extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isSelected ? color : Colors.white.withAlpha(12)),
+            border: Border.all(color: isSelected ? color : theme.colorScheme.onBackground.withAlpha(12)),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -312,7 +313,7 @@ class _MoodOption extends StatelessWidget {
                   text,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : Colors.grey[300],
+                    color: isSelected ? theme.colorScheme.onBackground : theme.colorScheme.onBackground.withOpacity(0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -338,9 +339,9 @@ class _DailyIntentionCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withAlpha(25)),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+        border: Border.all(color: theme.colorScheme.onBackground.withAlpha(25)),
+        gradient: LinearGradient(
+          colors: [theme.colorScheme.surface, theme.colorScheme.background],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -365,7 +366,7 @@ class _DailyIntentionCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: GoogleFonts.lora(
               textStyle: textTheme.titleMedium?.copyWith(
-                color: Colors.white.withAlpha(230),
+                color: theme.colorScheme.onBackground.withAlpha(230),
                 fontStyle: FontStyle.italic,
                 height: 1.5,
               ),
@@ -392,7 +393,7 @@ class _FeaturedContentCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Senin İçin Seçtiklerimiz', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('Senin İçin Seçtiklerimiz', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
@@ -416,7 +417,7 @@ class _FeaturedContentCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withAlpha(12)),
+              border: Border.all(color: theme.colorScheme.onBackground.withAlpha(12)),
               boxShadow: [BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 20, spreadRadius: -10)],
               image: const DecorationImage(
                 image: NetworkImage('https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
@@ -447,37 +448,37 @@ class _FeaturedContentCard extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(25),
+                          color: theme.colorScheme.onBackground.withAlpha(25),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withAlpha(51)),
+                          border: Border.all(color: theme.colorScheme.onBackground.withAlpha(51)),
                         ),
-                        child: const Icon(Icons.play_arrow, color: Colors.white),
+                        child: Icon(Icons.play_arrow, color: theme.colorScheme.onBackground),
                       ),
                     ),
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   bottom: 16,
                   left: 16,
                   right: 16,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
                           _Tag('ODAKLANMA'),
                           SizedBox(width: 8),
                           _Tag('NEFES'),
                         ],
                       ),
-                      SizedBox(height: 8),
-                      Text('Zihinsel Arınma', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 8),
+                      Text('Zihinsel Arınma', style: textTheme.headlineSmall),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.timer_outlined, size: 14, color: Colors.grey),
-                          SizedBox(width: 4),
-                          Text('3 dk Kutu Nefesi', style: TextStyle(color: Colors.grey)),
+                          Icon(Icons.timer_outlined, size: 14, color: theme.colorScheme.onBackground.withOpacity(0.6)),
+                          const SizedBox(width: 4),
+                          Text('3 dk Kutu Nefesi', style: textTheme.bodySmall),
                         ],
                       )
                     ],
@@ -498,6 +499,7 @@ class _Tag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: BackdropFilter(
@@ -505,11 +507,11 @@ class _Tag extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(25),
+            color: theme.colorScheme.onBackground.withAlpha(25),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.white.withAlpha(25)),
+            border: Border.all(color: theme.colorScheme.onBackground.withAlpha(25)),
           ),
-          child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+          child: Text(label, style: theme.textTheme.labelSmall),
         ),
       ),
     );
@@ -579,16 +581,14 @@ class _AiAssistantButtonState extends State<_AiAssistantButton> with SingleTicke
             height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+              gradient: LinearGradient(
+                colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
-              border: Border.all(color: Colors.white.withAlpha(102), width: 2),
+              border: Border.all(color: theme.colorScheme.onPrimary.withAlpha(102), width: 2),
             ),
-            child: const Center(
-              child: Icon(Icons.smart_toy_outlined, color: Colors.white, size: 32),
-            ),
+            child: Icon(Icons.smart_toy_outlined, color: theme.colorScheme.onPrimary, size: 32),
           ),
         ),
       ),

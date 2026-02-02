@@ -6,26 +6,19 @@ import 'package:moya/presentation/screens/breathing/breathing_screen.dart';
 class MeditationScreen extends StatelessWidget {
   const MeditationScreen({super.key});
 
-  // HTML'den alınan renkler
-  static const Color moyaDark = Color(0xFF0D1B2A);
-  static const Color moyaCard = Color(0xFF1B263B);
-  static const Color moyaAccent = Color(0xFF415A77);
-  static const Color primaryColor = Color(0x0ff2b8ee);
-
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: moyaDark,
+    return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _Header(),
-          _FeaturedCard(),
-          _TwoCardsGrid(),
-          _SectionHeader(title: "Kategoriler"),
-          _CategoriesList(),
-          _SectionHeader(title: "Popüler Meditasyonlar"),
-          _PopularMeditationsList(),
-          SliverToBoxAdapter(child: SizedBox(height: 120)), // Navigasyon çubuğu için boşluk
+          const _Header(),
+          const _FeaturedCard(),
+          const _TwoCardsGrid(),
+          const _SectionHeader(title: "Kategoriler"),
+          const _CategoriesList(),
+          const _SectionHeader(title: "Popüler Meditasyonlar"),
+          const _PopularMeditationsList(),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)), // Navigasyon çubuğu için boşluk
         ],
       ),
     );
@@ -37,6 +30,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top;
     return SliverAppBar(
       pinned: true,
@@ -47,34 +41,27 @@ class _Header extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            color: MeditationScreen.moyaDark.withOpacity(0.85),
+            color: theme.scaffoldBackgroundColor.withOpacity(0.85),
             padding: EdgeInsets.only(left: 24, right: 24, top: topPadding, bottom: 10),
             alignment: Alignment.bottomLeft,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       "Hoş Geldin",
-                      style: TextStyle(
-                        color: MeditationScreen.moyaAccent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onBackground.withOpacity(0.7),
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       "Zihnini Özgür Bırak",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.headlineSmall,
                     ),
                   ],
                 ),
@@ -82,11 +69,11 @@ class _Header extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: MeditationScreen.moyaCard,
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.1)),
                   ),
-                  child: const Icon(Icons.notifications, color: Colors.white, size: 20),
+                  child: Icon(Icons.notifications, color: theme.colorScheme.onSurface, size: 20),
                 ),
               ],
             ),
@@ -102,6 +89,7 @@ class _FeaturedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
@@ -110,7 +98,7 @@ class _FeaturedCard extends StatelessWidget {
           child: Container(
             height: 240,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.05)),
               borderRadius: BorderRadius.circular(32),
             ),
             child: Stack(
@@ -124,8 +112,8 @@ class _FeaturedCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        MeditationScreen.moyaDark,
-                        MeditationScreen.moyaDark.withOpacity(0.7),
+                        theme.scaffoldBackgroundColor,
+                        theme.scaffoldBackgroundColor.withOpacity(0.7),
                         Colors.transparent
                       ],
                       begin: Alignment.centerLeft,
@@ -141,34 +129,34 @@ class _FeaturedCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: MeditationScreen.primaryColor.withOpacity(0.2),
+                          color: theme.colorScheme.primary.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: MeditationScreen.primaryColor.withOpacity(0.3)),
+                          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.auto_awesome, color: MeditationScreen.primaryColor, size: 14),
-                            SizedBox(width: 6),
-                            Text("Sana Özel Öneri", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                            Icon(Icons.auto_awesome, color: theme.colorScheme.primary, size: 14),
+                            const SizedBox(width: 6),
+                            Text("Sana Özel Öneri", style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onBackground)),
                           ],
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text("10 dk Odaklanma", style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
+                      Text("10 dk Odaklanma", style: theme.textTheme.headlineMedium),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         "Sınav öncesi zihnini toparlamak için ideal bir seri.",
-                        style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+                        style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.7)),
                         maxLines: 2,
                       ),
                       const Spacer(),
                       ElevatedButton.icon(
                         onPressed: () {},
-                        icon: const Icon(Icons.play_circle, color: MeditationScreen.moyaDark, size: 22),
-                        label: const Text("Hemen Başla", style: TextStyle(color: MeditationScreen.moyaDark, fontWeight: FontWeight.bold, fontSize: 14)),
+                        icon: Icon(Icons.play_circle, color: theme.colorScheme.onPrimary, size: 22),
+                        label: Text("Hemen Başla", style: TextStyle(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
+                          backgroundColor: theme.colorScheme.primary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                         ),
@@ -232,11 +220,12 @@ class _SmallCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-          color: MeditationScreen.moyaCard,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: Colors.white.withOpacity(0.1))),
+          border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.1))),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
@@ -263,12 +252,12 @@ class _SmallCard extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.05),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      color: theme.colorScheme.onBackground.withOpacity(0.05),
+                      border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.1)),
                       ),
-                      child: Center(child: Icon(icon, color: Colors.white))),
+                      child: Center(child: Icon(icon, color: theme.colorScheme.onBackground))),
                   const SizedBox(height: 12),
-                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, height: 1.3)),
+                  Text(title, style: theme.textTheme.titleMedium?.copyWith(height: 1.3)),
                 ],
               ),
             ),
@@ -285,14 +274,15 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-            const Text("Tümü", style: TextStyle(color: MeditationScreen.primaryColor, fontSize: 14, fontWeight: FontWeight.bold)),
+            Text(title, style: theme.textTheme.headlineSmall),
+            Text("Tümü", style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
           ],
         ),
       ),
@@ -305,11 +295,12 @@ class _CategoriesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final categories = [
-      {'icon': Icons.school, 'label': "Sınav Kaygısı", 'color': Colors.indigo},
-      {'icon': Icons.bedtime, 'label': "Uykuya Hazırlık", 'color': Colors.teal},
-      {'icon': Icons.wb_sunny, 'label': "Sabah Enerjisi", 'color': Colors.amber},
-      {'icon': Icons.more_horiz, 'label': "Diğer", 'color': Colors.grey},
+      {'icon': Icons.school, 'label': "Sınav Kaygısı", 'color': theme.colorScheme.primaryContainer},
+      {'icon': Icons.bedtime, 'label': "Uykuya Hazırlık", 'color': theme.colorScheme.secondaryContainer},
+      {'icon': Icons.wb_sunny, 'label': "Sabah Enerjisi", 'color': theme.colorScheme.tertiaryContainer},
+      {'icon': Icons.more_horiz, 'label': "Diğer", 'color': theme.colorScheme.surfaceVariant},
     ];
 
     return SliverToBoxAdapter(
@@ -321,6 +312,7 @@ class _CategoriesList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           itemBuilder: (context, index) {
             final category = categories[index];
+            final color = category['color'] as Color;
             return Padding(
               padding: const EdgeInsets.only(right: 20),
               child: Column(
@@ -330,13 +322,13 @@ class _CategoriesList extends StatelessWidget {
                     height: 64,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: (category['color'] as Color).withOpacity(0.2),
-                      border: Border.all(color: (category['color'] as Color).withOpacity(0.3)),
+                      color: color.withOpacity(0.2),
+                      border: Border.all(color: color.withOpacity(0.3)),
                     ),
-                    child: Icon(category['icon'] as IconData, color: (category['color'] as MaterialColor).shade300, size: 28),
+                    child: Icon(category['icon'] as IconData, color: color, size: 28),
                   ),
                   const SizedBox(height: 8),
-                  Text(category['label'] as String, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(category['label'] as String, style: theme.textTheme.bodySmall),
                 ],
               ),
             );
@@ -352,6 +344,7 @@ class _PopularMeditationsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final popular = [
       {
         'title': "Derin Uyku Rehberi",
@@ -400,7 +393,7 @@ class _PopularMeditationsList extends StatelessWidget {
                                   color: Colors.black.withOpacity(0.7),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Text(item['duration']!, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                child: Text(item['duration']!, style: theme.textTheme.labelSmall),
                               ),
                             ),
                           ],
@@ -408,9 +401,9 @@ class _PopularMeditationsList extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(item['title']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1),
+                    Text(item['title']!, style: theme.textTheme.titleMedium, maxLines: 1),
                     const SizedBox(height: 4),
-                    Text(item['subtitle']!, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    Text(item['subtitle']!, style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),

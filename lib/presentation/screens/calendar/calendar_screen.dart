@@ -144,16 +144,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color moyaDark = Color(0xFF0D1B2A);
     final currentNotes = _notes[_dateOnly(_selectedDayDate)];
     final dayData = _dayData[_selectedDay]!;
 
-
     return Scaffold(
-      backgroundColor: moyaDark,
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(moyaDark),
+          _buildSliverAppBar(context),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) => _SliverContent(
@@ -170,9 +167,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  SliverAppBar _buildSliverAppBar(Color backgroundColor) {
+  SliverAppBar _buildSliverAppBar(BuildContext context) {
+    final theme = Theme.of(context);
     return SliverAppBar(
-      backgroundColor: backgroundColor.withAlpha(217),
+      backgroundColor: theme.scaffoldBackgroundColor.withAlpha(217),
       elevation: 0,
       pinned: true,
       expandedHeight: 150.0,
@@ -263,6 +261,7 @@ class _MonthSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     const monthNames = [
       'Ocak',
       'Şubat',
@@ -292,22 +291,17 @@ class _MonthSelector extends StatelessWidget {
         children: [
           IconButton(
             icon:
-                const Icon(Icons.chevron_left, color: Colors.white70, size: 24),
+                Icon(Icons.chevron_left, color: theme.colorScheme.onBackground.withOpacity(0.7), size: 24),
             onPressed: canGoBack ? () => onMonthChanged(-1) : null,
             splashRadius: 20,
           ),
           Text(
             dateString, // Using dynamic date
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Inter',
-            ),
+            style: theme.textTheme.titleLarge,
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right,
-                color: Colors.white70, size: 24),
+            icon: Icon(Icons.chevron_right,
+                color: theme.colorScheme.onBackground.withOpacity(0.7), size: 24),
             onPressed: () => onMonthChanged(1),
             splashRadius: 20,
           ),
@@ -334,7 +328,7 @@ class _HorizontalCalendarStripState extends State<_HorizontalCalendarStrip> {
   final List<Map<String, Object?>> days = [
     {'day': 'Pzt', 'date': '16', 'moodColor': Colors.blue[400], 'active': false},
     {'day': 'Sal', 'date': '17', 'moodColor': Colors.teal[400], 'active': false},
-    {'day': 'Çar', 'date': '18', 'moodColor': const Color(0xFF0D1B2A), 'active': true},
+    {'day': 'Çar', 'date': '18', 'moodColor': null, 'active': true},
     {'day': 'Per', 'date': '19', 'moodColor': Colors.purple[400], 'active': false},
     {'day': 'Cum', 'date': '20', 'moodColor': null, 'active': false},
     {'day': 'Cmt', 'date': '21', 'moodColor': null, 'active': false},
@@ -388,7 +382,8 @@ class _DayItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color accentBlue = Color(0xFF38BDF8);
+    final theme = Theme.of(context);
+    final accentBlue = theme.colorScheme.primary;
 
     return GestureDetector(
       onTap: onTap,
@@ -399,23 +394,21 @@ class _DayItem extends StatelessWidget {
           children: [
             Text(
               day.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
+              style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? accentBlue : Colors.white54,
-                fontFamily: 'Inter',
-              ),
+                color: isActive ? accentBlue : theme.colorScheme.onBackground.withOpacity(0.54),
+              )
             ),
             const SizedBox(height: 8),
             Container(
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: isActive ? accentBlue : Colors.white.withAlpha(13),
+                color: isActive ? accentBlue : theme.colorScheme.onBackground.withAlpha(13),
                 borderRadius: BorderRadius.circular(16),
                 border: isActive
                     ? null
-                    : Border.all(color: Colors.white.withAlpha(26)),
+                    : Border.all(color: theme.colorScheme.onBackground.withAlpha(26)),
                 boxShadow: isActive
                     ? [
                         BoxShadow(
@@ -431,10 +424,9 @@ class _DayItem extends StatelessWidget {
                   Text(
                     date,
                     style: TextStyle(
-                      color: isActive ? const Color(0xFF0D1B2A) : Colors.white,
+                      color: isActive ? theme.colorScheme.onPrimary : theme.colorScheme.onBackground,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      fontFamily: 'Inter',
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -548,7 +540,8 @@ class _DailyNoteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color accentBlue = Color(0xFF38BDF8);
+    final theme = Theme.of(context);
+    final accentBlue = theme.colorScheme.primary;
 
     return _GlassCard(
       padding: EdgeInsets.zero,
@@ -568,27 +561,20 @@ class _DailyNoteButton extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: accentBlue.withAlpha(26),
                   ),
-                  child: const Icon(Icons.edit_note, color: accentBlue),
+                  child: Icon(Icons.edit_note, color: accentBlue),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Günlük Not Ekle',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14)),
-                      SizedBox(height: 2),
-                      Text('Bugün nasıl hissettiğini yaz...',
-                          style:
-                              TextStyle(color: Colors.white54, fontSize: 12)),
+                      Text('Günlük Not Ekle', style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 2),
+                      Text('Bugün nasıl hissettiğini yaz...', style: theme.textTheme.bodySmall),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios,
-                    color: Colors.white30, size: 16),
+                Icon(Icons.arrow_forward_ios, color: theme.colorScheme.onBackground.withOpacity(0.3), size: 16),
               ],
             ),
           ),
@@ -605,17 +591,17 @@ class _NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return _GlassCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.notes_rounded, color: Colors.white38, size: 20),
+          Icon(Icons.notes_rounded, color: theme.colorScheme.onBackground.withOpacity(0.38), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               note,
-              style:
-                  const TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
+              style: theme.textTheme.bodyLarge?.copyWith(height: 1.5),
             ),
           ),
           const SizedBox(width: 8),
@@ -642,23 +628,19 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Inter'),
+          style: theme.textTheme.headlineSmall,
         ),
         if (subtitle != null) ...[
           const SizedBox(height: 4),
           Text(
             subtitle!,
-            style: const TextStyle(
-                color: Colors.white60, fontSize: 14, fontFamily: 'Inter'),
+            style: theme.textTheme.titleMedium,
           ),
         ]
       ],
@@ -673,19 +655,20 @@ class _GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withAlpha(26),
-            Colors.white.withAlpha(13)
+            theme.colorScheme.onBackground.withAlpha(26),
+            theme.colorScheme.onBackground.withAlpha(13)
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withAlpha(26)),
+        border: Border.all(color: theme.colorScheme.onBackground.withAlpha(26)),
       ),
       child: child,
     );
@@ -714,30 +697,24 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _GlassCard(
-      child: isLarge ? _buildLargeContent() : _buildSmallContent(),
+      child: isLarge ? _buildLargeContent(context) : _buildSmallContent(context),
     );
   }
 
-  Widget _buildLargeContent() {
+  Widget _buildLargeContent(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            Text(title, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
+            Text(value, style: theme.textTheme.titleLarge),
             if (subtitle != null) ...[
               const SizedBox(height: 4),
-              Text(subtitle!,
-                  style:
-                      const TextStyle(color: Colors.white38, fontSize: 12)),
+              Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.38))),
             ]
           ],
         ),
@@ -752,7 +729,8 @@ class _StatCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSmallContent() {
+  Widget _buildSmallContent(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -768,27 +746,19 @@ class _StatCard extends StatelessWidget {
         const SizedBox(height: 12),
         RichText(
           text: TextSpan(
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Inter'),
+            style: theme.textTheme.displaySmall,
             children: [
               TextSpan(text: value),
               if (subtitle != null)
                 TextSpan(
                   text: subtitle,
-                  style: const TextStyle(
-                      color: Colors.white38,
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal),
+                  style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.38)),
                 ),
             ],
           ),
         ),
         const SizedBox(height: 4),
-        Text(title,
-            style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        Text(title, style: theme.textTheme.bodySmall),
       ],
     );
   }
@@ -799,6 +769,9 @@ class _StatCard extends StatelessWidget {
 class _MoodChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
+    // This painter uses hardcoded colors for the chart itself.
+    // Theming this chart would require more information on how the theme should affect it.
+    // For now, we leave it as it is.
     final linePaint = Paint()
       ..color = const Color(0xFF38bdf8)
       ..style = PaintingStyle.stroke
@@ -870,15 +843,16 @@ class _NoteEntrySheetState extends State<_NoteEntrySheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SingleChildScrollView(
       child: Padding(
         padding:
             EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Color(0xFF172A3A),
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
@@ -887,24 +861,21 @@ class _NoteEntrySheetState extends State<_NoteEntrySheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Bugünün Notu',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               TextField(
                 controller: _controller,
                 autofocus: true,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: theme.colorScheme.onSurface),
                 decoration: InputDecoration(
                   hintText: 'Bugün nasıl hissettiğini yaz...',
-                  hintStyle: const TextStyle(color: Colors.white54),
+                  hintStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.54)),
                   filled: true,
-                  fillColor: Colors.black.withAlpha(100),
+                  fillColor: theme.colorScheme.background.withAlpha(100),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
@@ -917,16 +888,16 @@ class _NoteEntrySheetState extends State<_NoteEntrySheet> {
               ElevatedButton(
                 onPressed: () => widget.onSave(_controller.text),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF38BDF8),
+                  backgroundColor: theme.colorScheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Kaydet',
                   style: TextStyle(
-                      color: Color(0xFF0D1B2A),
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16),
                 ),

@@ -5,26 +5,25 @@ class MusicScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1B2A),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1B2A).withOpacity(0.9),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
+          icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
           onPressed: () {},
         ),
-        title: const Text(
+        title: Text(
           'Müzik ve Rahatlama',
           style: TextStyle(
-            color: Colors.white,
+            color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
+            icon: Icon(Icons.search, color: theme.colorScheme.onPrimary),
             onPressed: () {},
           ),
         ],
@@ -35,32 +34,33 @@ class MusicScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMoodSuggestionCard(),
+              _buildMoodSuggestionCard(context),
               const SizedBox(height: 24),
-              _buildCategoriesSection(),
+              _buildCategoriesSection(context),
               const SizedBox(height: 24),
-              _buildForYouSection(),
+              _buildForYouSection(context),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _buildPlayerBar(),
+      bottomNavigationBar: _buildPlayerBar(context),
     );
   }
 
-  Widget _buildMoodSuggestionCard() {
+  Widget _buildMoodSuggestionCard(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4BB8EE), Color(0xFF2D9CDB)],
+        gradient: LinearGradient(
+          colors: [theme.colorScheme.primary, theme.colorScheme.primary.withOpacity(0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4BB8EE).withOpacity(0.2),
+            color: theme.colorScheme.primary.withOpacity(0.2),
             blurRadius: 20,
             spreadRadius: 5,
           ),
@@ -74,20 +74,20 @@ class MusicScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: theme.colorScheme.onPrimary.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome,
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                   size: 18,
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'MODUN İÇİN ÖNERİ',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),
@@ -95,19 +95,19 @@ class MusicScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Zihni Toparlama Zamanı',
             style: TextStyle(
-              color: Colors.white,
+              color: theme.colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 24,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Son zamanlardaki yoğunluğuna dayanarak, zihnini berraklaştıracak bu listeyi seçtik.',
             style: TextStyle(
-              color: Colors.white,
+              color: theme.colorScheme.onPrimary,
               fontSize: 14,
             ),
           ),
@@ -115,21 +115,21 @@ class MusicScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: theme.colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.play_arrow, color: Color(0xFF4BB8EE)),
-                SizedBox(width: 8),
+                Icon(Icons.play_arrow, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
                 Text(
                   'Hemen Dinle',
                   style: TextStyle(
-                    color: Color(0xFF4BB8EE),
+                    color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -141,27 +141,30 @@ class MusicScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoriesSection() {
+  Widget _buildCategoriesSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColors = [
+      theme.colorScheme.primaryContainer,
+      theme.colorScheme.secondaryContainer,
+      theme.colorScheme.tertiaryContainer,
+      theme.colorScheme.surfaceVariant,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Kategoriler',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
             TextButton(
               onPressed: () {},
-              child: const Text(
+              child: Text(
                 'Tümünü Gör',
                 style: TextStyle(
-                  color: Color(0xFF4BB8EE),
+                  color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -177,30 +180,34 @@ class MusicScreen extends StatelessWidget {
           mainAxisSpacing: 16,
           children: [
             _buildCategoryCard(
+              context: context,
               title: 'Odaklanma & Çalışma',
               icon: Icons.psychology,
-              color: const Color(0xFF154984),
+              color: cardColors[0],
               imageUrl:
                   'https://lh3.googleusercontent.com/aida-public/AB6AXuBxzVfGi5oIov2eQvEb8StrJdo4X68KxaZOHRdAN1t4bjCNYc__pmz4W4riFFHG7mXiTCBvCgrRffVVDwF217YVLJWZEFmfDcRpL5NjneJ2w0U3AlhoPKq8WFGITqnPW-iMX-_oWOn82QUF1P_GNUCwhzWu945ZkiSek8Lks9Gr3fEhrRBJRdg2q_y7oUQ_XNOdo8ZO225I9Lcq-HVId2hQ4Peoyg8r_fQc2dXO_5WYz5hGpWNrtNWXqkTOgh7772t15UdtAm8grK4',
             ),
             _buildCategoryCard(
+              context: context,
               title: 'Derin Uyku',
               icon: Icons.bedtime,
-              color: Colors.indigo,
+              color: cardColors[1],
               imageUrl:
                   'https://lh3.googleusercontent.com/aida-public/AB6AXuBCGqMEazLagNpa6Xj2nCSVl598WkcJGKlSUYS4yU0eGpNM8nVeN6fCTWy8tQHedOXjooNMmA5ayCmweFVmzDaeVOo4FV-8v03-kpSteCUDQQOQaQfArAeHNQDE5lQsXMfB4I--17SoT5dVmCV9ka0K1xMdtmPKch7ljSEjYwFBgIOsYCx-dFJW8cDgTZLpmRfLISN6_6KwOUHI66IhxIX17cGP1JQR-kfRcvwpNW_LDptnahxJLSFtTTJlwSnzJxbcLzj-RwnGZDw',
             ),
             _buildCategoryCard(
+              context: context,
               title: 'Stres Azaltma',
               icon: Icons.self_improvement,
-              color: Colors.teal,
+              color: cardColors[2],
               imageUrl:
                   'https://lh3.googleusercontent.com/aida-public/AB6AXuBHNJ-pFMDMb0Yn3N5OHYg8TsnvmXnr8geIZLNGyUdRfwADmqj1GB_OXuej5HP6YNkBiVcd_-q6YKq-EJD7wixYU9c8Y512K8CyJnj02mpWFUIg-h7Mh33Efz6YQknqtzaWcXGCc5_p4SqHWjfGW5cqdR5vMQCTwCkKHZZXnrx_ogteddg-PGLIYfv1VcJd6irRsInv4UmCUXYT479iQibPmJBkGnagB5vHU2SNvjN5m6SK_9qh8t-NXxyXE0f3b_9hoG8Lh6OnOtU',
             ),
             _buildCategoryCard(
+              context: context,
               title: 'Doğa Sesleri',
               icon: Icons.forest,
-              color: Colors.green,
+              color: cardColors[3],
               imageUrl:
                   'https://lh3.googleusercontent.com/aida-public/AB6AXuBjNPKVc-yXpF1O7e_cIa2UqWEC4YpB-7Yh0ZjnKbQlUSMlM85GP4vi8Q57jdrMrNDVXfZCi_1VVMYa1mfMmecW6kt1sD1gzVJe1zMaG3_wKaqCpwwAFSEeA_zK4_7mSqfBdNIhhrKatEVbWYXe3F7LtwFBNaPg9lE5b3UpSLNnuIQPw7Og2CAZqd5rcgQj-NIF_udVbBcQ_fM8qLCTAkq4Exq6uD-OhnHku6L6LskKTksR0_HMcfc44c7L6cpIn5k6FpF11ycaIbM',
             ),
@@ -211,11 +218,16 @@ class MusicScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color color,
     required String imageUrl,
   }) {
+    final theme = Theme.of(context);
+    final brightness = ThemeData.estimateBrightnessForColor(color);
+    final iconColor = brightness == Brightness.dark ? Colors.white : Colors.black;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
@@ -223,13 +235,13 @@ class MusicScreen extends StatelessWidget {
           image: NetworkImage(imageUrl),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
-            Colors.black.withOpacity(0.4),
+            theme.colorScheme.background.withOpacity(0.4),
             BlendMode.darken,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: theme.shadowColor.withOpacity(0.3),
             blurRadius: 10,
             spreadRadius: 2,
           ),
@@ -250,15 +262,13 @@ class MusicScreen extends StatelessWidget {
                     color: color.withOpacity(0.8),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: Colors.white, size: 16),
+                  child: Icon(icon, color: iconColor, size: 16),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: theme.textTheme.titleLarge?.copyWith(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
                   ),
                 ),
               ],
@@ -269,17 +279,14 @@ class MusicScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildForYouSection() {
+  Widget _buildForYouSection(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Sizin İçin Seçildi',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
         SizedBox(
@@ -288,18 +295,21 @@ class MusicScreen extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             children: [
               _buildForYouCard(
+                context: context,
                 title: 'Yağmur Sesi',
                 subtitle: 'Doğa',
                 imageUrl:
                     'https://lh3.googleusercontent.com/aida-public/AB6AXuAr0vNUqjVKS_E92DqCxUFvTuLTJ3yMBGJiNk5Czhej2QdCJ_DZbr6941bdpmWLo2Bw74LzE29mPowBCLvImTIxR77vax7vV81xYEi5XoaVvPckIl_n6hQGZBMqXMxovnFSpPQ4_0LMtwz6xS2RnsFyXhLn3v6hVanqHbpAUBcZ5EwDyP0bq01AeoSRxrBC0xNgC-z2_fKUzV1k5lOS36Tq77ux11cG21gfOj3eCudHtp9z_cvKZWe_yqmll9Yj8okWdPcxD9wdbxw',
               ),
               _buildForYouCard(
+                context: context,
                 title: 'Orman Yürüyüşü',
                 subtitle: 'Ambiyans',
                 imageUrl:
                     'https://lh3.googleusercontent.com/aida-public/AB6AXuBAgW3CflygXDd3uNG-e1Xps92Ht36GhrLwDSGeb9leA6Sw8dvTh0CUiMp-01v5DZLibGFpayLrsls73rqRnTcpMMMgL6Tbv-LHiqmzQld8h8Z3XcCQSblOZjY9NgWKEinDMyiLECxOy0ZEoPntNENtin8pnqgvRs55m0QPk0WbpmidKrRldPpvP0TnVV_IPURUFjDzrgm4CDFT_ALDHY0YGcdT5_5JmTDTxG9rC00-ZHIycRP1SyVK608K89trha8RbunskSi2TPg',
               ),
               _buildForYouCard(
+                context: context,
                 title: 'Okyanus',
                 subtitle: 'Rahatlama',
                 imageUrl:
@@ -313,10 +323,12 @@ class MusicScreen extends StatelessWidget {
   }
 
   Widget _buildForYouCard({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required String imageUrl,
   }) {
+    final theme = Theme.of(context);
     return Container(
       width: 120,
       margin: const EdgeInsets.only(right: 16),
@@ -335,7 +347,7 @@ class MusicScreen extends StatelessWidget {
             child: Center(
               child: Icon(
                 Icons.play_arrow,
-                color: Colors.white.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
                 size: 40,
               ),
             ),
@@ -343,33 +355,28 @@ class MusicScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.7)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPlayerBar() {
+  Widget _buildPlayerBar(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF154984).withOpacity(0.8),
+        color: theme.colorScheme.secondaryContainer.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: theme.colorScheme.onSecondaryContainer.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -387,31 +394,25 @@ class MusicScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'Okyanus Dalgaları',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSecondaryContainer),
                 ),
                 Text(
                   'En son dinlenen',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSecondaryContainer.withOpacity(0.7)),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.play_circle_fill,
-                color: Colors.white, size: 32),
+            icon: Icon(Icons.play_circle_fill,
+                color: theme.colorScheme.onSecondaryContainer, size: 32),
             onPressed: () {},
           ),
         ],
