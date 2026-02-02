@@ -34,16 +34,17 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ThemeBloc()),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, state) {
-          return MaterialApp(
-            navigatorKey: navigatorKey, // 🔑 bağlandı
-            title: 'MOYA',
-            debugShowCheckedModeBanner: false,
-            theme: AppThemes.getTheme(AppThemeType.ocean),
-            home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
-          );
-        },
-      ),
+  builder: (context, state) {
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      title: 'MOYA',
+      debugShowCheckedModeBanner: false,
+      // SABİT YERİNE: state içindeki mevcut temayı alıyoruz
+      theme: AppThemes.getTheme(state.themeType), 
+      home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
+    );
+  },
+),
     );
   }
 }

@@ -3,41 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moya/presentation/screens/chatbot/chatbot_screen.dart';
 
-// Ana ekran widget'ı. State (durum) yönetimi alt widget'lara devredildiği için artık StatelessWidget.
+// Ana ekran widget'ı.
 class HomeScreenNew extends StatelessWidget {
-  const HomeScreenNew({super.key});
+  // onMenuTap parametresini VoidCallback olarak tanımladık.
+  final VoidCallback onMenuTap;
+
+  const HomeScreenNew({super.key, required this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Stack(
         children: [
           CustomScrollView(
             slivers: [
-              _HomeAppBar(),
+              // onMenuTap fonksiyonunu alt widget'a gönderiyoruz.
+              _HomeAppBar(onMenuTap: onMenuTap),
               SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate.fixed(
                     [
-                      SizedBox(height: 24),
-                      _Greeting(),
-                      SizedBox(height: 12),
-                      _EmergencySupportCard(),
-                      SizedBox(height: 12),
-                      _MoodSelector(),
-                      SizedBox(height: 16),
-                      _DailyIntentionCard(),
-                      SizedBox(height: 24),
-                      _FeaturedContentCard(),
-                      SizedBox(height: 150), // Alt navigasyon çubuğu için boşluk
+                      const SizedBox(height: 24),
+                      const _Greeting(),
+                      const SizedBox(height: 12),
+                      const _EmergencySupportCard(),
+                      const SizedBox(height: 12),
+                      const _MoodSelector(),
+                      const SizedBox(height: 16),
+                      const _DailyIntentionCard(),
+                      const SizedBox(height: 24),
+                      const _FeaturedContentCard(),
+                      const SizedBox(height: 150), // Alt navigasyon çubuğu boşluğu
                     ],
                   ),
                 ),
               ),
             ],
           ),
-          _AiAssistantButton(),
+          const _AiAssistantButton(),
         ],
       ),
     );
@@ -45,9 +49,9 @@ class HomeScreenNew extends StatelessWidget {
 }
 
 // --- 1. APP BAR WIDGET ---
-// Başlık, menü butonu ve profil ikonunu içeren üst uygulama çubuğu.
 class _HomeAppBar extends StatelessWidget {
-  const _HomeAppBar();
+  final VoidCallback onMenuTap;
+  const _HomeAppBar({required this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +95,8 @@ class _HomeAppBar extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () => Scaffold.of(context).openDrawer(),
+            // Burası artık MainWrapper'daki Drawer'ı tetikliyor.
+            onTap: onMenuTap, 
             child: const Padding(
               padding: EdgeInsets.all(8.0),
               child: Icon(Icons.menu, size: 30, color: Colors.white),
@@ -136,7 +141,6 @@ class _HomeAppBar extends StatelessWidget {
 }
 
 // --- 2. GREETING WIDGET ---
-// Kullanıcıyı karşılayan selamlama mesajı.
 class _Greeting extends StatelessWidget {
   const _Greeting();
 
@@ -171,7 +175,6 @@ class _Greeting extends StatelessWidget {
 }
 
 // --- 3. EMERGENCY SUPPORT WIDGET ---
-// Acil durum ve destek için bir kart.
 class _EmergencySupportCard extends StatelessWidget {
   const _EmergencySupportCard();
 
@@ -181,9 +184,7 @@ class _EmergencySupportCard extends StatelessWidget {
       color: Colors.red.withAlpha(25),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: () {
-          // TODO: Acil destek eylemini uygulayın
-        },
+        onTap: () {},
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -223,7 +224,6 @@ class _EmergencySupportCard extends StatelessWidget {
 }
 
 // --- 4. MOOD SELECTOR WIDGET ---
-// Ruh hali seçeneklerini yöneten ve görüntüleyen stateful bir widget.
 class _MoodSelector extends StatefulWidget {
   const _MoodSelector();
 
@@ -272,7 +272,6 @@ class _MoodSelectorState extends State<_MoodSelector> {
   }
 }
 
-// _MoodSelector tarafından kullanılan tek bir ruh hali seçeneği.
 class _MoodOption extends StatelessWidget {
   const _MoodOption({
     required this.emoji,
@@ -326,9 +325,7 @@ class _MoodOption extends StatelessWidget {
   }
 }
 
-
 // --- 5. DAILY INTENTION WIDGET ---
-// "Günün Sözü" veya günlük niyeti gösterir.
 class _DailyIntentionCard extends StatelessWidget {
   const _DailyIntentionCard();
 
@@ -381,7 +378,6 @@ class _DailyIntentionCard extends StatelessWidget {
 }
 
 // --- 6. FEATURED CONTENT WIDGET ---
-// Meditasyon veya nefes egzersizi gibi öne çıkan ana içerik kartını gösterir.
 class _FeaturedContentCard extends StatelessWidget {
   const _FeaturedContentCard();
 
@@ -423,14 +419,13 @@ class _FeaturedContentCard extends StatelessWidget {
               border: Border.all(color: Colors.white.withAlpha(12)),
               boxShadow: [BoxShadow(color: Colors.black.withAlpha(51), blurRadius: 20, spreadRadius: -10)],
               image: const DecorationImage(
-                image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCFtbal5YrjiXvO8see1DK3HkaA9Gl5AOLsa9d7PnBapTVwCrSVwYoego0j3gLmVREoNVMigzPK0Fm39V4Hz7tF28K8bRDDg38n9w4_VelQI67QfFVNulIdY75nxO2qFCGBu6Hl9Q84KYz4nzfe-w9PtSC4sEmR-eJcA04pzsf4VZ0rCVOsXP9eQtT1xBWFmCOTXQJNt-exMuAFwNfQuIi7UGuz_vVwFKRPuTiTeo2HaYAZd79XKUJyB7zJiDSZcri8Cop0-u0XH9h1'),
+                image: NetworkImage('https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
                 fit: BoxFit.cover,
                 opacity: 0.7,
               ),
             ),
             child: Stack(
               children: [
-                // Gradyan katmanı
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
@@ -441,7 +436,6 @@ class _FeaturedContentCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Oynat Butonu
                 Positioned(
                   top: 16,
                   right: 16,
@@ -462,8 +456,7 @@ class _FeaturedContentCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // İçerik
-                Positioned(
+                const Positioned(
                   bottom: 16,
                   left: 16,
                   right: 16,
@@ -473,24 +466,18 @@ class _FeaturedContentCard extends StatelessWidget {
                       Row(
                         children: [
                           _Tag('ODAKLANMA'),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           _Tag('NEFES'),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      const Text('Zihinsel Arınma', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 8),
+                      Text('Zihinsel Arınma', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.timer_outlined, size: 14, color: Colors.grey[400]),
-                          const SizedBox(width: 4),
-                          Text('3 dk Kutu Nefesi', style: textTheme.bodySmall?.copyWith(color: Colors.grey[400])),
-                          const SizedBox(width: 8),
-                          Text('•', style: TextStyle(color: Colors.grey[600])),
-                          const SizedBox(width: 8),
-                          Icon(Icons.headphones_outlined, size: 14, color: Colors.grey[400]),
-                          const SizedBox(width: 4),
-                          Text('Odak Müziği', style: textTheme.bodySmall?.copyWith(color: Colors.grey[400])),
+                          Icon(Icons.timer_outlined, size: 14, color: Colors.grey),
+                          SizedBox(width: 4),
+                          Text('3 dk Kutu Nefesi', style: TextStyle(color: Colors.grey)),
                         ],
                       )
                     ],
@@ -505,7 +492,6 @@ class _FeaturedContentCard extends StatelessWidget {
   }
 }
 
-// _FeaturedContentCard tarafından kullanılan küçük bir etiket widget'ı.
 class _Tag extends StatelessWidget {
   const _Tag(this.label);
   final String label;
@@ -530,9 +516,7 @@ class _Tag extends StatelessWidget {
   }
 }
 
-
 // --- 7. AI ASSISTANT BUTTON WIDGET ---
-// Parlama animasyonuna sahip, kayan AI asistan butonu için stateful bir widget.
 class _AiAssistantButton extends StatefulWidget {
   const _AiAssistantButton();
 
@@ -600,7 +584,7 @@ class _AiAssistantButtonState extends State<_AiAssistantButton> with SingleTicke
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
               ),
-              border: Border.all(color: Colors.white.withAlpha((0.4 * 255).toInt()), width: 2),
+              border: Border.all(color: Colors.white.withAlpha(102), width: 2),
             ),
             child: const Center(
               child: Icon(Icons.smart_toy_outlined, color: Colors.white, size: 32),

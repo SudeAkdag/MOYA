@@ -11,6 +11,7 @@ abstract class ThemeEvent extends Equatable {
 class ChangeTheme extends ThemeEvent {
   final AppThemeType theme;
 
+  // Sadece sıralı parametre bırakıyoruz, kafa karışıklığını gideriyoruz
   const ChangeTheme(this.theme);
 
   @override

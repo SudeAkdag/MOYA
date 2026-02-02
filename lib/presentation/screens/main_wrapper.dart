@@ -28,20 +28,26 @@ class _MainWrapperState extends State<MainWrapper> {
 
   // Sayfa listesini yeni tasarıma göre güncelle
   // SideMenu'dan gelen index'leri de yönetebilmek için geniş bir liste tutuyoruz.
-  static const List<Widget> _allPages = [
-    MeditationScreen(), // 8 // 0 -> Nav Bar 0
-    MusicScreen(), // 1 -> Nav Bar 1
-    HomeScreenNew(), // 2 -> Nav Bar 2 (Ana Sayfa)
-    CalendarScreen(), // 3 -> Nav Bar 3
-    BlogScreen(), // 4 -> Nav Bar 4
-    // Alt kısımdakiler SideMenu'dan erişilenler
-    ProfileScreen(), // 5
-    FavoritesScreen(), // 6
-    ChatbotScreen(), // 7
-    MeditationScreen(), // 8
-    SettingsScreen(), // 9
-    AboutScreen(), // 10
-  ];
+  late final List<Widget> _allPages;
+
+  @override
+  void initState() {
+    super.initState();
+    _allPages = [
+      const MeditationScreen(), // 8 // 0 -> Nav Bar 0
+      const MusicScreen(), // 1 -> Nav Bar 1
+      HomeScreenNew(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()), // 2 -> Nav Bar 2 (Ana Sayfa)
+      const CalendarScreen(), // 3 -> Nav Bar 3
+      const BlogScreen(), // 4 -> Nav Bar 4
+      // Alt kısımdakiler SideMenu'dan erişilenler
+      const ProfileScreen(), // 5
+      const FavoritesScreen(), // 6
+      const ChatbotScreen(), // 7
+      const MeditationScreen(), // 8
+      const SettingsScreen(), // 9
+      const AboutScreen(), // 10
+    ];
+  }
 
   // Gösterilecek mevcut sayfa
   Widget _getCurrentPage() {
