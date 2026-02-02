@@ -6,7 +6,7 @@ import 'music/music_screen.dart';
 import 'blog/blog_screen.dart';
 import 'meditation/meditation_screen.dart';
 import 'profile/profile_screen.dart';
-import 'favorites/favorites_screen.dart';
+import 'recording/recorded_screen.dart';
 import 'chatbot/chatbot_screen.dart';
 import 'settings/settings_screen.dart';
 import 'package:moya/presentation/screens/calendar/calendar_screen.dart';
@@ -41,7 +41,7 @@ class _MainWrapperState extends State<MainWrapper> {
       const BlogScreen(), // 4 -> Nav Bar 4
       // Alt kısımdakiler SideMenu'dan erişilenler
       const ProfileScreen(), // 5
-      const FavoritesScreen(), // 6
+      const RecordedScreen(), // 6
       const ChatbotScreen(), // 7
       const MeditationScreen(), // 8
       const SettingsScreen(), // 9
