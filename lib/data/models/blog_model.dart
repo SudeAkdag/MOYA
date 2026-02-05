@@ -18,27 +18,17 @@ class BlogModel {
     required this.date,
     this.isFeatured = false,
   });
+
+  factory BlogModel.fromJson(Map<String, dynamic> json) {
+    return BlogModel(
+      title: json['title'] ?? '',
+      author: json['author'] ?? '',
+      category: json['category'] ?? 'Genel',
+      description: json['description'] ?? '',
+      imageUrl: json['imageUrl'] ?? 'https://via.placeholder.com/400x200',
+      readTime: json['readTime'] ?? '5 dk',
+      date: json['date'] ?? '',
+      isFeatured: json['isFeatured'] ?? false,
+    );
+  }
 }
-
-
-final List<BlogModel> blogPosts = [
-  BlogModel(
-    title: 'Kaygı ile Başa Çıkmanın Yolları',
-    author: 'Psk. Dan. Ahmet Y.',
-    category: 'PSİKOLOJİ',
-    description: 'Günlük hayatta karşılaştığımız stres faktörlerini yönetmek...',
-    imageUrl: 'https://picsum.photos/400/200',
-    readTime: '5 dk',
-    date: '12 Ekim 2023',
-    isFeatured: true,
-  ),
-  BlogModel(
-    title: 'Doğru Nefes Teknikleri',
-    author: 'Dr. Elif K.',
-    category: 'NEFES',
-    description: 'Zihninizi sakinleştirmek için temel egzersizler...',
-    imageUrl: 'https://picsum.photos/400/201',
-    readTime: '3 dk',
-    date: '10 Ekim 2023',
-  ),
-];

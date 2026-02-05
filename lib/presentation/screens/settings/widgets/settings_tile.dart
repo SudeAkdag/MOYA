@@ -16,21 +16,27 @@ class SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ListTile(
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(20),
+          color: theme.colorScheme.primary.withOpacity(0.1), // İkon arkası hafif ana renk
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.blueAccent, size: 20),
+        child: Icon(icon, color: theme.colorScheme.primary, size: 20), // İkon rengi ana renk
       ),
       title: Text(
         title,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
+        style: TextStyle(
+          color: theme.colorScheme.onSurface, // Temanın yazı rengi
+          fontSize: 16,
+          fontWeight: FontWeight.w500
+        ),
       ),
-      trailing: trailing ?? const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+      trailing: trailing ?? Icon(Icons.arrow_forward_ios, color: theme.colorScheme.outline, size: 16),
     );
   }
 }

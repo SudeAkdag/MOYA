@@ -1,53 +1,49 @@
 import 'package:flutter/material.dart';
-import '../../../../data/models/blog_model.dart';
+
+import '../../../../data/services/blog_service.dart';
 import 'widgets/blog_card.dart'; 
 import 'widgets/category_selector.dart';
 import 'widgets/recent_blog_tile.dart';
 
-class BlogScreen extends StatelessWidget {
+class BlogScreen extends StatefulWidget {
   const BlogScreen({super.key});
 
-  static final List<BlogModel> blogPosts = [
-    BlogModel(
-      title: 'Gelecek Kaygısıyla Bilimsel Baş Etme Yolları',
-      author: 'Dr. Öğr. Selin K.',
-      category: 'PSİKOLOJİ',
-      description: 'Günlük hayatta karşılaştığımız stres faktörlerini yönetmek...',
-      imageUrl: 'https://picsum.photos/400/200',
-      readTime: '5 dk okuma',
-      date: '12 Ekim 2023',
-      isFeatured: true,
-    ),
-    BlogModel(
-      title: 'Kaliteli Uyku İçin 5 İpucu',
-      author: 'Psk. Öğr. Damla Y.',
-      category: 'UYKU HİJYENİ',
-      description: 'Uyku kalitenizi artırmak için yapılması gerekenler...',
-      imageUrl: 'https://picsum.photos/400/201',
-      readTime: '4 dk okuma',
-      date: '10 Ekim 2023',
-    ),
-    BlogModel(
-      title: 'Dijital Detoks ve Zihin Sağlığı',
-      author: 'Psk. Öğr. Elif K.',
-      category: 'FARKINDALIK',
-      description: 'Zihinsel sağlığınızı korumak için dijital alışkanlıklar...',
-      imageUrl: 'https://picsum.photos/400/202',
-      readTime: '3 dk okuma',
-      date: '08 Ekim 2023',
-    ),
-  ];
+  @override
+  State<BlogScreen> createState() => _BlogScreenState();
+}
+
+class _BlogScreenState extends State<BlogScreen> {
+  String selectedCategory = "Tümü";
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final featuredPost = blogPosts.firstWhere((p) => p.isFeatured, orElse: () => blogPosts.first);
+
+    final filteredPosts = selectedCategory == "Tümü"
+        ? BlogService.blogPosts 
+        : BlogService.blogPosts.where((post) => 
+            post.category.toUpperCase() == selectedCategory.toUpperCase()).toList();
+
+    final featuredPost = BlogService.blogPosts.firstWhere(
+      (p) => p.isFeatured, 
+      orElse: () => BlogService.blogPosts.first
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Bilgi ve Farkındalık'), centerTitle: false),
       body: CustomScrollView(
         slivers: [
-          const SliverToBoxAdapter(child: CategorySelector()),
+          // Kategori Çubuğu
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: CategorySelector(
+                onCategorySelected: (category) {
+                  setState(() => selectedCategory = category);
+                },
+              ),
+            ),
+          ),
           
           const SliverToBoxAdapter(
             child: Padding(
@@ -55,6 +51,7 @@ class BlogScreen extends StatelessWidget {
               child: Text("Haftanın Makalesi", style: TextStyle(color: Colors.grey, fontSize: 12)),
             ),
           ),
+
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -77,11 +74,11 @@ class BlogScreen extends StatelessWidget {
 
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => RecentBlogTile(post: blogPosts[index]),
-              childCount: blogPosts.length,
+              (context, index) => RecentBlogTile(post: filteredPosts[index]),
+              childCount: filteredPosts.length,
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          const SliverToBoxAdapter(child: SizedBox(height: 50)),
         ],
       ),
     );
