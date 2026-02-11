@@ -2,10 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moya/presentation/screens/chatbot/chatbot_screen.dart';
+import 'package:moya/presentation/screens/profile/profile_screen.dart';
 
 // Ana ekran widget'ı.
 class HomeScreenNew extends StatelessWidget {
-  // onMenuTap parametresini VoidCallback olarak tanımladık.
   final VoidCallback onMenuTap;
 
   const HomeScreenNew({super.key, required this.onMenuTap});
@@ -17,7 +17,6 @@ class HomeScreenNew extends StatelessWidget {
         children: [
           CustomScrollView(
             slivers: [
-              // onMenuTap fonksiyonunu alt widget'a gönderiyoruz.
               _HomeAppBar(onMenuTap: onMenuTap),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -34,7 +33,7 @@ class HomeScreenNew extends StatelessWidget {
                       const _DailyIntentionCard(),
                       const SizedBox(height: 24),
                       const _FeaturedContentCard(),
-                      const SizedBox(height: 150), // Alt navigasyon çubuğu boşluğu
+                      const SizedBox(height: 150), 
                     ],
                   ),
                 ),
@@ -95,7 +94,6 @@ class _HomeAppBar extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            // Burası artık MainWrapper'daki Drawer'ı tetikliyor.
             onTap: onMenuTap,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -108,27 +106,37 @@ class _HomeAppBar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [theme.primaryColor, theme.colorScheme.secondary],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
-              ),
-              padding: const EdgeInsets.all(2),
+            child: InkWell( // Navigasyon sarmalayıcısı
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                // SÖ simgesine tıklandığında ProfileScreen'e gider
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                );
+              },
               child: Container(
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.cardTheme.color,
+                  gradient: LinearGradient(
+                    colors: [theme.primaryColor, theme.colorScheme.secondary],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
                 ),
-                child: Center(
-                  child: Text(
-                    'SÖ',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface),
+                padding: const EdgeInsets.all(2),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.cardTheme.color,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'SÖ',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface),
+                    ),
                   ),
                 ),
               ),
