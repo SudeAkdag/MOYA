@@ -4,7 +4,7 @@ import '../../presentation/widgets/side_menu_drawer.dart';
 import 'home/home_screen_new.dart'; // Yeni ana sayfa
 import 'music/music_screen.dart';
 import 'blog/blog_screen.dart';
-import 'meditation/meditation_screen.dart';
+import 'E&M/meditation_screen.dart';
 import 'profile/profile_screen.dart';
 import 'recording/recorded_screen.dart';
 import 'chatbot/chatbot_screen.dart';

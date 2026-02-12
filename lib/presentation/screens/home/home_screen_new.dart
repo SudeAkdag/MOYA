@@ -1,8 +1,17 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:google_fonts/google_fonts.dart';
 import 'package:moya/presentation/screens/chatbot/chatbot_screen.dart';
 import 'package:moya/presentation/screens/profile/profile_screen.dart';
+=======
+import 'ai_assistant_button.dart';
+import 'daily_intention_card.dart';
+import 'emergency_support_card.dart';
+import 'featured_content_card.dart';
+import 'greeting_widget.dart';
+import 'home_app_bar.dart';
+import 'home_mood_selector.dart';
+>>>>>>> 580281d (takvim sayfası widgetlara ayrıldı, müzik sayfası için playlist taslakları oluşturuldu.)
 
 // Ana ekran widget'ı.
 class HomeScreenNew extends StatelessWidget {
@@ -17,34 +26,45 @@ class HomeScreenNew extends StatelessWidget {
         children: [
           CustomScrollView(
             slivers: [
+<<<<<<< HEAD
               _HomeAppBar(onMenuTap: onMenuTap),
+=======
+              // onMenuTap fonksiyonunu alt widget'a gönderiyoruz.
+              HomeAppBar(onMenuTap: onMenuTap),
+>>>>>>> 580281d (takvim sayfası widgetlara ayrıldı, müzik sayfası için playlist taslakları oluşturuldu.)
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate.fixed(
                     [
                       const SizedBox(height: 24),
-                      const _Greeting(),
+                      const GreetingWidget(),
                       const SizedBox(height: 12),
-                      const _EmergencySupportCard(),
+                      const EmergencySupportCard(),
                       const SizedBox(height: 12),
-                      const _MoodSelector(),
+                      const HomeMoodSelector(),
                       const SizedBox(height: 16),
-                      const _DailyIntentionCard(),
+                      const DailyIntentionCard(),
                       const SizedBox(height: 24),
+<<<<<<< HEAD
                       const _FeaturedContentCard(),
                       const SizedBox(height: 150), 
+=======
+                      const FeaturedContentCard(),
+                      const SizedBox(height: 150), // Alt navigasyon çubuğu boşluğu
+>>>>>>> 580281d (takvim sayfası widgetlara ayrıldı, müzik sayfası için playlist taslakları oluşturuldu.)
                     ],
                   ),
                 ),
               ),
             ],
           ),
-          const _AiAssistantButton(),
+          const AiAssistantButton(),
         ],
       ),
     );
   }
+<<<<<<< HEAD
 }
 
 // --- 1. APP BAR WIDGET ---
@@ -602,4 +622,6 @@ class _AiAssistantButtonState extends State<_AiAssistantButton> with SingleTicke
       ),
     );
   }
+=======
+>>>>>>> 580281d (takvim sayfası widgetlara ayrıldı, müzik sayfası için playlist taslakları oluşturuldu.)
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moya/presentation/screens/music/playlist_screen.dart';
 
 class MusicScreen extends StatelessWidget {
   const MusicScreen({super.key});
@@ -182,6 +183,7 @@ class MusicScreen extends StatelessWidget {
             _buildCategoryCard(
               context: context,
               title: 'Odaklanma & Çalışma',
+              categoryId: 'focus',
               icon: Icons.psychology,
               color: cardColors[0],
               imageUrl:
@@ -190,6 +192,7 @@ class MusicScreen extends StatelessWidget {
             _buildCategoryCard(
               context: context,
               title: 'Derin Uyku',
+              categoryId: 'sleep',
               icon: Icons.bedtime,
               color: cardColors[1],
               imageUrl:
@@ -198,6 +201,7 @@ class MusicScreen extends StatelessWidget {
             _buildCategoryCard(
               context: context,
               title: 'Stres Azaltma',
+              categoryId: 'stress',
               icon: Icons.self_improvement,
               color: cardColors[2],
               imageUrl:
@@ -206,6 +210,7 @@ class MusicScreen extends StatelessWidget {
             _buildCategoryCard(
               context: context,
               title: 'Doğa Sesleri',
+              categoryId: 'nature',
               icon: Icons.forest,
               color: cardColors[3],
               imageUrl:
@@ -220,6 +225,7 @@ class MusicScreen extends StatelessWidget {
   Widget _buildCategoryCard({
     required BuildContext context,
     required String title,
+    required String categoryId,
     required IconData icon,
     required Color color,
     required String imageUrl,
@@ -228,53 +234,67 @@ class MusicScreen extends StatelessWidget {
     final brightness = ThemeData.estimateBrightnessForColor(color);
     final iconColor = brightness == Brightness.dark ? Colors.white : Colors.black;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(
-            theme.colorScheme.background.withOpacity(0.4),
-            BlendMode.darken,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor.withOpacity(0.3),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: iconColor, size: 16),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                  ),
-                ),
-              ],
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlaylistScreen(
+              categoryTitle: title,
+              categoryId: categoryId,
             ),
           ),
-        ],
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          image: DecorationImage(
+            image: NetworkImage(imageUrl),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              theme.colorScheme.background.withOpacity(0.4),
+              BlendMode.darken,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withOpacity(0.3),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: iconColor, size: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
