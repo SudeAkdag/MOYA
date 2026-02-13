@@ -3,16 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moya/core/theme/app_theme.dart';
-
-// 1. Firebase paketlerini ve options dosyasını mutlaka ekle!
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 
 import 'core/theme/bloc/theme_bloc.dart';
-import 'core/theme/bloc/theme_state.dart'; 
+import 'core/theme/bloc/theme_state.dart';
 import 'presentation/screens/auth/login/login_screen.dart';
 import 'presentation/screens/auth/login/login_view_model.dart';
 import 'presentation/screens/main_wrapper.dart';
+import 'package:moya/injection_container.dart' as di;
 
 // 🔑 GLOBAL NAVIGATOR KEY
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -20,13 +20,21 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   // Flutter'ın widget sistemini hazırla
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 2. Firebase'i bu satırla ayağa kaldırıyoruz!
-  // Bu satır olmazsa bloglar veritabanından gelmez.
+  di.init();
+
+  // Firebase'i bu satırla ayağa kaldırıyoruz!
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
+  // 🔥 TEST KODU: Firestore bağlantısını terminalden kontrol et
+  try {
+    var snapshot = await FirebaseFirestore.instance.collection('meditasyon').get();
+    print("🔥 Firestore'daki doküman sayısı: ${snapshot.docs.length}");
+  } catch (e) {
+    print("❌ Firestore hatası: $e");
+  }
+
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
@@ -50,7 +58,7 @@ class MyApp extends StatelessWidget {
             navigatorKey: navigatorKey,
             title: 'MOYA',
             debugShowCheckedModeBanner: false,
-            theme: AppThemes.getTheme(state.themeType), 
+            theme: AppThemes.getTheme(state.themeType),
             home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
           );
         },
