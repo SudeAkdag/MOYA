@@ -4,11 +4,15 @@ import 'package:moya/core/theme/app_theme.dart';
 import 'package:moya/core/theme/bloc/theme_bloc.dart';
 import 'package:moya/core/theme/bloc/theme_event.dart';
 import 'package:moya/core/theme/bloc/theme_state.dart';
+import 'package:moya/presentation/widgets/custom_bottom_nav_bar.dart';
 import 'widgets/settings_group.dart';
 import 'widgets/settings_tile.dart';
+import '../about/about_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final VoidCallback? onBack;
+
+  const SettingsScreen({super.key, this.onBack});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -35,17 +39,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context); // Temayı buraya da ekledik
+    final theme = Theme.of(context);
+    // Navigator.canPop sadece Navigator.push ile gelindiyse true döner.
+    final bool canPop = Navigator.canPop(context);
 
     return Scaffold(
-      // Arka plan rengini artık elle yazmıyoruz, temadan çekiyoruz
-      backgroundColor: theme.colorScheme.surface, 
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Ayarlar', 
-          style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
         centerTitle: true,
+        title: Text(
+          'Ayarlar',
+          style: TextStyle(
+            fontWeight: FontWeight.bold, 
+            color: theme.colorScheme.onSurface,
+            fontSize: 18,
+          ),
+        ),
+        // SOL ÜSTTEKİ GERİ TUŞU (APPBAR)
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () {
+            if (canPop) {
+              // Profil ekranından (push ile) geldiyse sayfayı kapatır.
+              Navigator.pop(context);
+            } else if (widget.onBack != null) {
+              // Side menu'den (MainWrapper içinde) geldiyse onBack tetiklenir.
+              widget.onBack!();
+            }
+          },
+        ),
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: SingleChildScrollView(
@@ -61,12 +85,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: Switch(
                     value: isPushNotificationsEnabled,
                     onChanged: (val) => setState(() => isPushNotificationsEnabled = val),
-                    activeColor: theme.colorScheme.primary, // Switch rengi temaya göre değişir
+                    activeColor: theme.colorScheme.primary,
                   ),
                 ),
               ],
             ),
-
             SettingsGroup(
               title: 'Görünüm',
               children: [
@@ -80,22 +103,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: isCurrentlyNight,
                         onChanged: (bool val) {
                           context.read<ThemeBloc>().add(
-                            ChangeTheme(val ? AppThemeType.night : AppThemeType.ocean)
-                          );
+                              ChangeTheme(val ? AppThemeType.night : AppThemeType.ocean));
                         },
                         activeColor: theme.colorScheme.primary,
                       ),
                     );
                   },
                 ),
-                
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Tema Renk Paleti', 
-                        style: TextStyle(color: theme.colorScheme.outline, fontSize: 13)),
+                      Text('Tema Renk Paleti',
+                          style: TextStyle(color: theme.colorScheme.outline, fontSize: 13)),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,8 +130,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: CircleAvatar(
                                   radius: 18,
                                   backgroundColor: displayColors[index],
-                                  child: isSelected 
-                                      ? const Icon(Icons.check, color: Colors.white, size: 20) 
+                                  child: isSelected
+                                      ? const Icon(Icons.check, color: Colors.white, size: 20)
                                       : null,
                                 ),
                               );
@@ -123,20 +144,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-
             SettingsGroup(
               title: 'Hesap Yönetimi',
               children: [
                 SettingsTile(
                   title: 'Şifre Değiştir',
-                  icon: Icons.history,
+                  icon: Icons.lock_outline,
                   onTap: () {},
                 ),
               ],
             ),
-
+            SettingsGroup(
+              title: 'Uygulama Bilgisi',
+              children: [
+                SettingsTile(
+                  title: 'Hakkında',
+                  icon: Icons.info_outline,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AboutScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
-            
             SettingsGroup(
               title: 'Tehlikeli Bölge',
               children: [
@@ -147,18 +180,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-            Text('MOYA v2.4.0', style: TextStyle(color: theme.colorScheme.outline, fontSize: 12)),
-            const SizedBox(height: 100), 
+            Text('MOYA v2.4.0',
+                style: TextStyle(color: theme.colorScheme.outline, fontSize: 12)),
+            const SizedBox(height: 100),
           ],
         ),
+      ),
+      // ALTTTAKİ NAV BAR ÜZERİNDEKİ GERİ DÖNÜŞ MANTIĞI
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: 9, 
+        onItemTapped: (index) {
+          // Eğer Ayarlar (9) dışında bir şeye basılırsa
+          if (index != 9) {
+            if (canPop) {
+               // Profil üzerinden gelindiyse sayfayı kapat ve MainWrapper'a dön
+               Navigator.pop(context);
+            } else if (widget.onBack != null) {
+               // Side bar üzerinden gelindiyse direkt index değiştir
+               widget.onBack!(); 
+            }
+          }
+        },
       ),
     );
   }
 
   void _showDeleteConfirmation(BuildContext context) {
-    // SnackBar renklerini de temaya uyumlu hale getirebilirsin
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Hesap silme özelliği yakında eklenecek.')),
     );

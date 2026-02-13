@@ -53,7 +53,7 @@ class SideMenuDrawer extends StatelessWidget {
           _buildMenuItem(theme, Icons.article_outlined, "Blog", () => onMenuTap(4)),
           _buildMenuItem(theme, Icons.bookmark_border, "Kaydedilenler", () => onMenuTap(6)),
           _buildMenuItem(theme, Icons.settings, "Ayarlar", () => onMenuTap(9)),
-          _buildMenuItem(theme, Icons.info_outline, "Hakkında", () => onMenuTap(10)),
+         
 
           const Divider(),
 
