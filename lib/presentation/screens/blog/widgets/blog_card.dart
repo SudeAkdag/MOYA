@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moya/presentation/screens/blog/blog_detail_screen.dart';
 import '../../../../data/models/blog_model.dart';
 
 class BlogCard extends StatelessWidget {
@@ -85,9 +86,16 @@ class BlogCard extends StatelessWidget {
                   children: [
                     Text("${post.date} • ${post.author}", style: theme.textTheme.bodySmall),
                     TextButton(
-                      onPressed: () {}, 
-                      child: Text('Devamını Oku ->', style: TextStyle(color: theme.colorScheme.primary)),
-                    ),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlogDetailScreen(post: post),
+      ),
+    );
+  }, 
+  child: Text('Devamını Oku ->', style: TextStyle(color: theme.colorScheme.primary)),
+),
                   ],
                 ),
               ],
