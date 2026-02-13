@@ -37,9 +37,20 @@ class _BlogScreenState extends State<BlogScreen> {
 
           // Haftanın Makalesi (isFeatured: true olanı bulur, yoksa ilkini alır)
           final featuredPost = allPosts.firstWhere(
-            (p) => p.isFeatured, 
-            orElse: () => allPosts.isNotEmpty ? allPosts.first : BlogModel(title: "Yükleniyor...", author: "", category: "", description: "", content: "", imageUrl: "", readTime: "", date: "")
-          );
+  (p) => p.isFeatured, 
+  orElse: () => allPosts.isNotEmpty 
+      ? allPosts.first 
+      : BlogModel(
+          title: "Yükleniyor...", 
+          author: "", 
+          category: "", 
+          description: "", 
+          content: "", 
+          imageUrl: "", 
+          readTime: "", 
+          date: ""
+        )
+);
 
           if (allPosts.isEmpty) return const Center(child: Text("Henüz blog eklenmemiş."));
 

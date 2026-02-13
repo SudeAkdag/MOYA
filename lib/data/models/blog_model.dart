@@ -27,7 +27,7 @@ class BlogModel {
       description: json['ozet'] ?? '',   
       content: json['icerik'] ?? '',    
       imageUrl: json['resimUrl'] ?? '', 
-      readTime: json['okumaSure'] ?? '', 
+      readTime: json['okumaSuresi'] ?? '', 
       date: json['tarih'] ?? '',         
       isFeatured: json['isFeatured'] ?? false,
     );
