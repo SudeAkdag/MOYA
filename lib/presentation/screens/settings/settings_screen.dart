@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context); // Temayı buraya da ekledik
 
     return Scaffold(
-      // Arka plan rengini artık elle yazmıyoruz, temadan çekiyoruz
+     
       backgroundColor: theme.colorScheme.surface, 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -61,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: Switch(
                     value: isPushNotificationsEnabled,
                     onChanged: (val) => setState(() => isPushNotificationsEnabled = val),
-                    activeColor: theme.colorScheme.primary, // Switch rengi temaya göre değişir
+                    activeColor: theme.colorScheme.primary, 
                   ),
                 ),
               ],
