@@ -237,7 +237,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       backgroundColor: theme.scaffoldBackgroundColor.withAlpha(217),
       elevation: 0,
       pinned: true,
-      expandedHeight: 150.0,
+      expandedHeight: 180.0,
       leading: Builder(
         builder: (context) => IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onBackground),
