@@ -35,7 +35,7 @@ class _MainWrapperState extends State<MainWrapper> {
     super.initState();
     _allPages = [
       const MeditationScreen(), // 8 // 0 -> Nav Bar 0
-      const MusicScreen(), // 1 -> Nav Bar 1
+    MusicScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()),
       HomeScreenNew(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()), // 2 -> Nav Bar 2 (Ana Sayfa)
       const CalendarScreen(), // 3 -> Nav Bar 3
       const BlogScreen(), // 4 -> Nav Bar 4

@@ -14,9 +14,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   late DateTime _displayedMonth;
   late DateTime _selectedDayDate;
   final Map<DateTime, List<String>> _notes = {};
-  String _selectedDay = 'Çar'; // Default to Wednesday
+  String _selectedDay = 'Çar'; // Varsayılan gün
 
-  // Mock data for each day
+  // DÜZELTME: Sınıf içindeki değişkenler 'static const' değilse 'final' olmalıdır.
+  final Color customGreen = const Color(0xFF636E3B); 
+  final Color customCream = const Color(0xFFFFFBE6);
+
+  // Veri Seti
   final Map<String, Map<String, dynamic>> _dayData = {
     'Pzt': {
       'mood': 'Mutlu',
@@ -97,7 +101,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final newMonth =
         DateTime(_displayedMonth.year, _displayedMonth.month + increment, 1);
 
-    // Prevent going to a month before the initial month
     final now = DateTime.now();
     final initialMonth = DateTime(now.year, now.month, 1);
     if (newMonth.isBefore(initialMonth)) {
@@ -150,6 +153,57 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final dayData = _dayData[_selectedDay]!;
 
     return Scaffold(
+      drawer: Drawer(
+        backgroundColor: customCream,
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 60, left: 24, bottom: 30),
+              color: customGreen,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CircleAvatar(
+                    radius: 35,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, size: 45, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Ayşe Yılmaz',
+                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'ayse.yilmaz@ornek.com',
+                    style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                children: [
+                  _drawerItem(Icons.person_outline, 'Profil', () {}),
+                  _drawerItem(Icons.self_improvement, 'Egzersiz ve Meditasyon', () {}),
+                  _drawerItem(Icons.music_note, 'Müzik', () {}),
+                  _drawerItem(Icons.description_outlined, 'Blog', () {}),
+                  _drawerItem(Icons.bookmark_border, 'Kaydedilenler', () {}),
+                  _drawerItem(Icons.settings_outlined, 'Ayarlar', () {}),
+                  _drawerItem(Icons.info_outline, 'Hakkında', () {}),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Divider(),
+                  ),
+                  _drawerItem(Icons.logout, 'Çıkış Yap', () {}, color: Colors.redAccent),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(context),
@@ -169,6 +223,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Widget _drawerItem(IconData icon, String title, VoidCallback onTap, {Color color = const Color(0xFF4A4A4A)}) {
+    return ListTile(
+      leading: Icon(icon, color: color, size: 26),
+      title: Text(title, style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w500)),
+      onTap: onTap,
+    );
+  }
+
   SliverAppBar _buildSliverAppBar(BuildContext context) {
     final theme = Theme.of(context);
     return SliverAppBar(
@@ -176,6 +238,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       elevation: 0,
       pinned: true,
       expandedHeight: 150.0,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: Icon(Icons.menu, color: theme.colorScheme.onBackground),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+      ),
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           children: <Widget>[

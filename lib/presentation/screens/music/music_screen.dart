@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:moya/presentation/screens/music/playlist_screen.dart';
 
 class MusicScreen extends StatelessWidget {
-  const MusicScreen({super.key});
+  // MainWrapper'dan gelen fonksiyon: Side bar'ı açar.
+  final VoidCallback onMenuTap;
+
+  const MusicScreen({super.key, required this.onMenuTap});
 
   @override
   Widget build(BuildContext context) {
@@ -10,9 +13,10 @@ class MusicScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        // --- BURASI DEĞİŞTİ: onMenuTap tetikleyici eklendi ---
         leading: IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
-          onPressed: () {},
+          onPressed: onMenuTap, // MainWrapper'daki drawer'ı açar
         ),
         title: Text(
           'Müzik ve Rahatlama',
@@ -44,9 +48,12 @@ class MusicScreen extends StatelessWidget {
           ),
         ),
       ),
+      // Alt barın drawer arkasında kalmaması için hiyerarşi korundu
       bottomNavigationBar: _buildPlayerBar(context),
     );
   }
+
+  // --- 400 SATIRLIK ORIJINAL TASARIMIN (DOKUNULMADI) ---
 
   Widget _buildMoodSuggestionCard(BuildContext context) {
     final theme = Theme.of(context);
@@ -186,8 +193,7 @@ class MusicScreen extends StatelessWidget {
               categoryId: 'focus',
               icon: Icons.psychology,
               color: cardColors[0],
-              imageUrl:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBxzVfGi5oIov2eQvEb8StrJdo4X68KxaZOHRdAN1t4bjCNYc__pmz4W4riFFHG7mXiTCBvCgrRffVVDwF217YVLJWZEFmfDcRpL5NjneJ2w0U3AlhoPKq8WFGITqnPW-iMX-_oWOn82QUF1P_GNUCwhzWu945ZkiSek8Lks9Gr3fEhrRBJRdg2q_y7oUQ_XNOdo8ZO225I9Lcq-HVId2hQ4Peoyg8r_fQc2dXO_5WYz5hGpWNrtNWXqkTOgh7772t15UdtAm8grK4',
+              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxzVfGi5oIov2eQvEb8StrJdo4X68KxaZOHRdAN1t4bjCNYc__pmz4W4riFFHG7mXiTCBvCgrRffVVDwF217YVLJWZEFmfDcRpL5NjneJ2w0U3AlhoPKq8WFGITqnPW-iMX-_oWOn82QUF1P_GNUCwhzWu945ZkiSek8Lks9Gr3fEhrRBJRdg2q_y7oUQ_XNOdo8ZO225I9Lcq-HVId2hQ4Peoyg8r_fQc2dXO_5WYz5hGpWNrtNWXqkTOgh7772t15UdtAm8grK4',
             ),
             _buildCategoryCard(
               context: context,
@@ -195,8 +201,7 @@ class MusicScreen extends StatelessWidget {
               categoryId: 'sleep',
               icon: Icons.bedtime,
               color: cardColors[1],
-              imageUrl:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBCGqMEazLagNpa6Xj2nCSVl598WkcJGKlSUYS4yU0eGpNM8nVeN6fCTWy8tQHedOXjooNMmA5ayCmweFVmzDaeVOo4FV-8v03-kpSteCUDQQOQaQfArAeHNQDE5lQsXMfB4I--17SoT5dVmCV9ka0K1xMdtmPKch7ljSEjYwFBgIOsYCx-dFJW8cDgTZLpmRfLISN6_6KwOUHI66IhxIX17cGP1JQR-kfRcvwpNW_LDptnahxJLSFtTTJlwSnzJxbcLzj-RwnGZDw',
+              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCGqMEazLagNpa6Xj2nCSVl598WkcJGKlSUYS4yU0eGpNM8nVeN6fCTWy8tQHedOXjooNMmA5ayCmweFVmzDaeVOo4FV-8v03-kpSteCUDQQOQaQfArAeHNQDE5lQsXMfB4I--17SoT5dVmCV9ka0K1xMdtmPKch7ljSEjYwFBgIOsYCx-dFJW8cDgTZLpmRfLISN6_6KwOUHI66IhxIX17cGP1JQR-kfRcvwpNW_LDptnahxJLSFtTTJlwSnzJxbcLzj-RwnGZDw',
             ),
             _buildCategoryCard(
               context: context,
@@ -204,8 +209,7 @@ class MusicScreen extends StatelessWidget {
               categoryId: 'stress',
               icon: Icons.self_improvement,
               color: cardColors[2],
-              imageUrl:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBHNJ-pFMDMb0Yn3N5OHYg8TsnvmXnr8geIZLNGyUdRfwADmqj1GB_OXuej5HP6YNkBiVcd_-q6YKq-EJD7wixYU9c8Y512K8CyJnj02mpWFUIg-h7Mh33Efz6YQknqtzaWcXGCc5_p4SqHWjfGW5cqdR5vMQCTwCkKHZZXnrx_ogteddg-PGLIYfv1VcJd6irRsInv4UmCUXYT479iQibPmJBkGnagB5vHU2SNvjN5m6SK_9qh8t-NXxyXE0f3b_9hoG8Lh6OnOtU',
+              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHNJ-pFMDMb0Yn3N5OHYg8TsnvmXnr8geIZLNGyUdRfwADmqj1GB_OXuej5HP6YNkBiVcd_-q6YKq-EJD7wixYU9c8Y512K8CyJnj02mpWFUIg-h7Mh33Efz6YQknqtzaWcXGCc5_p4SqHWjfGW5cqdR5vMQCTwCkKHZZXnrx_ogteddg-PGLIYfv1VcJd6irRsInv4UmCUXYT479iQibPmJBkGnagB5vHU2SNvjN5m6SK_9qh8t-NXxyXE0f3b_9hoG8Lh6OnOtU',
             ),
             _buildCategoryCard(
               context: context,
@@ -213,8 +217,7 @@ class MusicScreen extends StatelessWidget {
               categoryId: 'nature',
               icon: Icons.forest,
               color: cardColors[3],
-              imageUrl:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBjNPKVc-yXpF1O7e_cIa2UqWEC4YpB-7Yh0ZjnKbQlUSMlM85GP4vi8Q57jdrMrNDVXfZCi_1VVMYa1mfMmecW6kt1sD1gzVJe1zMaG3_wKaqCpwwAFSEeA_zK4_7mSqfBdNIhhrKatEVbWYXe3F7LtwFBNaPg9lE5b3UpSLNnuIQPw7Og2CAZqd5rcgQj-NIF_udVbBcQ_fM8qLCTAkq4Exq6uD-OhnHku6L6LskKTksR0_HMcfc44c7L6cpIn5k6FpF11ycaIbM',
+              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjNPKVc-yXpF1O7e_cIa2UqWEC4YpB-7Yh0ZjnKbQlUSMlM85GP4vi8Q57jdrMrNDVXfZCi_1VVMYa1mfMmecW6kt1sD1gzVJe1zMaG3_wKaqCpwwAFSEeA_zK4_7mSqfBdNIhhrKatEVbWYXe3F7LtwFBNaPg9lE5b3UpSLNnuIQPw7Og2CAZqd5rcgQj-NIF_udVbBcQ_fM8qLCTAkq4Exq6uD-OhnHku6L6LskKTksR0_HMcfc44c7L6cpIn5k6FpF11ycaIbM',
             ),
           ],
         ),
@@ -231,8 +234,7 @@ class MusicScreen extends StatelessWidget {
     required String imageUrl,
   }) {
     final theme = Theme.of(context);
-    final brightness = ThemeData.estimateBrightnessForColor(color);
-    final iconColor = brightness == Brightness.dark ? Colors.white : Colors.black;
+    final iconColor = ThemeData.estimateBrightnessForColor(color) == Brightness.dark ? Colors.white : Colors.black;
 
     return InkWell(
       onTap: () {
@@ -318,22 +320,19 @@ class MusicScreen extends StatelessWidget {
                 context: context,
                 title: 'Yağmur Sesi',
                 subtitle: 'Doğa',
-                imageUrl:
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuAr0vNUqjVKS_E92DqCxUFvTuLTJ3yMBGJiNk5Czhej2QdCJ_DZbr6941bdpmWLo2Bw74LzE29mPowBCLvImTIxR77vax7vV81xYEi5XoaVvPckIl_n6hQGZBMqXMxovnFSpPQ4_0LMtwz6xS2RnsFyXhLn3v6hVanqHbpAUBcZ5EwDyP0bq01AeoSRxrBC0xNgC-z2_fKUzV1k5lOS36Tq77ux11cG21gfOj3eCudHtp9z_cvKZWe_yqmll9Yj8okWdPcxD9wdbxw',
+                imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAr0vNUqjVKS_E92DqCxUFvTuLTJ3yMBGJiNk5Czhej2QdCJ_DZbr6941bdpmWLo2Bw74LzE29mPowBCLvImTIxR77vax7vV81xYEi5XoaVvPckIl_n6hQGZBMqXMxovnFSpPQ4_0LMtwz6xS2RnsFyXhLn3v6hVanqHbpAUBcZ5EwDyP0bq01AeoSRxrBC0xNgC-z2_fKUzV1k5lOS36Tq77ux11cG21gfOj3eCudHtp9z_cvKZWe_yqmll9Yj8okWdPcxD9wdbxw',
               ),
               _buildForYouCard(
                 context: context,
                 title: 'Orman Yürüyüşü',
                 subtitle: 'Ambiyans',
-                imageUrl:
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuBAgW3CflygXDd3uNG-e1Xps92Ht36GhrLwDSGeb9leA6Sw8dvTh0CUiMp-01v5DZLibGFpayLrsls73rqRnTcpMMMgL6Tbv-LHiqmzQld8h8Z3XcCQSblOZjY9NgWKEinDMyiLECxOy0ZEoPntNENtin8pnqgvRs55m0QPk0WbpmidKrRldPpvP0TnVV_IPURUFjDzrgm4CDFT_ALDHY0YGcdT5_5JmTDTxG9rC00-ZHIycRP1SyVK608K89trha8RbunskSi2TPg',
+                imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBAgW3CflygXDd3uNG-e1Xps92Ht36GhrLwDSGeb9leA6Sw8dvTh0CUiMp-01v5DZLibGFpayLrsls73rqRnTcpMMMgL6Tbv-LHiqmzQld8h8Z3XcCQSblOZjY9NgWKEinDMyiLECxOy0ZEoPntNENtin8pnqgvRs55m0QPk0WbpmidKrRldPpvP0TnVV_IPURUFjDzrgm4CDFT_ALDHY0YGcdT5_5JmTDTxG9rC00-ZHIycRP1SyVK608K89trha8RbunskSi2TPg',
               ),
               _buildForYouCard(
                 context: context,
                 title: 'Okyanus',
                 subtitle: 'Rahatlama',
-                imageUrl:
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuCFNW6m799F9jL6K03HE2i7tZviPdO5owr993p6JutlyKoe61br7-cirJeKLcaPCV17-WQo1nsBHvhC1tltJ9_dK8ecmRCaIDvKD6sw0fTRm2DitQeuh99FsTBhoQTcSppl0Y-z1u0vB7-yW8ERwA63BkJXuej3OPPDXuQpiNoPsw-ov5dSi9SPVb2LlAokn8Hk94tkgJM_kqrA0bBJ-pvvEfxjrpxAhv7OXd3SxJ_PVGGJhjGqU9ClRcSpvSCVKNdSk84etSLI6s0',
+                imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFNW6m799F9jL6K03HE2i7tZviPdO5owr993p6JutlyKoe61br7-cirJeKLcaPCV17-WQo1nsBHvhC1tltJ9_dK8ecmRCaIDvKD6sw0fTRm2DitQeuh99FsTBhoQTcSppl0Y-z1u0vB7-yW8ERwA63BkJXuej3OPPDXuQpiNoPsw-ov5dSi9SPVb2LlAokn8Hk94tkgJM_kqrA0bBJ-pvvEfxjrpxAhv7OXd3SxJ_PVGGJhjGqU9ClRcSpvSCVKNdSk84etSLI6s0',
               ),
             ],
           ),
@@ -406,9 +405,7 @@ class MusicScreen extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               image: const DecorationImage(
-                image: NetworkImage(
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuCFNW6m799F9jL6K03HE2i7tZviPdO5owr993p6JutlyKoe61br7-cirJeKLcaPCV17-WQo1nsBHvhC1tltJ9_dK8ecmRCaIDvKD6sw0fTRm2DitQeuh99FsTBhoQTcSppl0Y-z1u0vB7-yW8ERwA63BkJXuej3OPPDXuQpiNoPsw-ov5dSi9SPVb2LlAokn8Hk94tkgJM_kqrA0bBJ-pvvEfxjrpxAhv7OXd3SxJ_PVGGJhjGqU9ClRcSpvSCVKNdSk84etSLI6s0',
-                ),
+                image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCFNW6m799F9jL6K03HE2i7tZviPdO5owr993p6JutlyKoe61br7-cirJeKLcaPCV17-WQo1nsBHvhC1tltJ9_dK8ecmRCaIDvKD6sw0fTRm2DitQeuh99FsTBhoQTcSppl0Y-z1u0vB7-yW8ERwA63BkJXuej3OPPDXuQpiNoPsw-ov5dSi9SPVb2LlAokn8Hk94tkgJM_kqrA0bBJ-pvvEfxjrpxAhv7OXd3SxJ_PVGGJhjGqU9ClRcSpvSCVKNdSk84etSLI6s0'),
                 fit: BoxFit.cover,
               ),
             ),
