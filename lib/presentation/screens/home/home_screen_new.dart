@@ -10,8 +10,13 @@ import 'home_mood_selector.dart';
 // Ana ekran widget'ı.
 class HomeScreenNew extends StatelessWidget {
   final VoidCallback onMenuTap;
+  final VoidCallback onProfileTap; // Profil tıklaması için yeni parametre
 
-  const HomeScreenNew({super.key, required this.onMenuTap});
+  const HomeScreenNew({
+    super.key, 
+    required this.onMenuTap, 
+    required this.onProfileTap, // Zorunlu hale getirdik
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +25,11 @@ class HomeScreenNew extends StatelessWidget {
         children: [
           CustomScrollView(
             slivers: [
-              // onMenuTap fonksiyonunu alt widget'a gönderiyoruz.
-              HomeAppBar(onMenuTap: onMenuTap),
+              // Hem menü hem de profil tıklama fonksiyonlarını gönderiyoruz.
+              HomeAppBar(
+                onMenuTap: onMenuTap,
+                onProfileTap: onProfileTap,
+              ),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverList(

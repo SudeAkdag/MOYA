@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
   final VoidCallback onMenuTap;
-  const HomeAppBar({super.key, required this.onMenuTap});
+  final VoidCallback onProfileTap; // Profil için yeni callback
+
+  const HomeAppBar({
+    super.key, 
+    required this.onMenuTap, 
+    required this.onProfileTap, // Parametrelere ekledik
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -59,27 +65,34 @@ class HomeAppBar extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(right: 16.0),
           child: Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [theme.primaryColor, theme.colorScheme.secondary],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
-              ),
-              padding: const EdgeInsets.all(2),
+            child: GestureDetector(
+              onTap: onProfileTap, // Burayı onProfileTap yaptık
               child: Container(
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.cardTheme.color,
+                  gradient: LinearGradient(
+                    colors: [theme.primaryColor, theme.colorScheme.secondary],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
                 ),
-                child: Center(
-                  child: Text(
-                    'SÖ',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: theme.colorScheme.onSurface),
+                padding: const EdgeInsets.all(2),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.cardTheme.color,
+                  ),
+                  child: Center(
+                    child: Text(
+                      'SÖ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12, 
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -23,31 +23,38 @@ class _MainWrapperState extends State<MainWrapper> {
 
   // Navigasyon index yönetimi
   int _currentIndex = 2; // Başlangıç ekranı: Ana Sayfa
-  int _lastIndex = 2;    // Ayarlardan geri dönüldüğünde kullanılacak hafıza indexi
+  int _lastIndex = 2;    // Ayarlardan veya profilden geri dönüldüğünde kullanılacak hafıza indexi
 
-  late final List<Widget> _allPages;
-
-  @override
-  void initState() {
-    super.initState();
-    _allPages = [
-      const MeditationScreen(), // 0
-      MusicScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()), // 1
-      HomeScreenNew(onMenuTap: () => _scaffoldKey.currentState?.openDrawer()), // 2
-      const CalendarScreen(), // 3
-      const BlogScreen(), // 4
-      const ProfileScreen(), // 5
-      const RecordedScreen(), // 6
-      const ChatbotScreen(), // 7
-      const MeditationScreen(), // 8 (Yedek)
-      SettingsScreen(
-        onBack: () {
-          setState(() {
-            _currentIndex = _lastIndex; // Ayarlardan çıkınca son aktif sayfaya dön
-          });
-        },
-      ), // 9
-    ];
+  // Sayfaları oluşturan yardımcı fonksiyon
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0: return const MeditationScreen();
+      case 1: return MusicScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      case 2: 
+        return HomeScreenNew(
+          onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+          onProfileTap: () => _onItemTapped(5), // SÖ butonuna basınca profile git
+        );
+      case 3: return const CalendarScreen();
+      case 4: return const BlogScreen();
+      case 5: 
+        return ProfileScreen(
+          onBack: () => _onItemTapped(2), // Geri tuşuna basınca ana sayfaya (index 2) dön
+        );
+      case 6: return const RecordedScreen();
+      case 7: return const ChatbotScreen();
+      case 8: return const MeditationScreen();
+      case 9: 
+        return SettingsScreen(
+          onBack: () {
+            setState(() {
+              _currentIndex = _lastIndex; 
+            });
+          },
+        );
+      default:
+        return const Center(child: Text("Sayfa Bulunamadı"));
+    }
   }
 
   // Sayfa seçimini ve hafıza kaydını yöneten fonksiyon
@@ -61,14 +68,6 @@ class _MainWrapperState extends State<MainWrapper> {
         _currentIndex = index;
       });
     }
-  }
-
-  // Mevcut sayfayı getiren yardımcı fonksiyon
-  Widget _getCurrentPage() {
-    if (_currentIndex >= 0 && _currentIndex < _allPages.length) {
-      return _allPages[_currentIndex];
-    }
-    return _allPages[2]; // Hata durumunda varsayılan Ana Sayfa
   }
 
   @override
@@ -95,7 +94,7 @@ class _MainWrapperState extends State<MainWrapper> {
               color: theme.dividerColor.withAlpha(100),
             ),
           ],
-          Expanded(child: _getCurrentPage()),
+          Expanded(child: _buildPage(_currentIndex)),
         ],
       ),
       bottomNavigationBar: isWideLayout 
