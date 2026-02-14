@@ -1,42 +1,40 @@
 import 'package:flutter/material.dart';
 
-// Gerekli Widget Importları
+// Gerekli Widget Importları (Dosya yollarını projenize göre kontrol edin)
 import 'widgets/profile_header.dart';
 import 'widgets/statistics_section.dart';
 import 'widgets/mood_history_section.dart';
 import 'widgets/account_info.dart'; 
 import 'widgets/edit_profile_sheet.dart';
-
-// Ayarlar Sayfasına Navigasyon İçin
 import '../settings/settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final VoidCallback onBack;
+
+  const ProfileScreen({super.key, required this.onBack});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // 1. Merkezi Veri Yönetimi: Tüm kullanıcı verileri bu Map üzerinden dağıtılır
+  // Merkezi Veri Yönetimi
   Map<String, dynamic> userData = {
     'name': 'Ayşe Yılmaz',
     'username': 'ayseyilmaz',
-    'email': 'ayse.yilmaz@ornek.com',
+    'email': 'ayse.yilmaz@moya.com',
     'phone': '0555 555 55 55',
     'bday': '12 Mayıs 1995',
     'gender': 'Kadın',
     'focusAreas': ['Odaklanma', 'Stres Yönetimi'],
   };
 
-  // 2. Güncelleme Fonksiyonu: Düzenleme yapıldığında arayüzü yeniler
   void _handleUpdate(Map<String, dynamic> newData) {
     setState(() {
       userData = newData;
     });
   }
 
-  // 3. Profil Düzenleme Penceresini (Bottom Sheet) Açan Fonksiyon
   void _showEditSheet() {
     showModalBottomSheet(
       context: context,
@@ -51,54 +49,124 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      // AppBar Yapılandırması: Bildirim zili kaldırıldı, Ayarlar simgesi eklendi
-      appBar: AppBar(
-        title: const Text('Profil', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            onPressed: () {
-              // Ayarlar sayfasına akıcı geçiş
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            }, 
-            icon: const Icon(Icons.settings_outlined),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      // SafeArea üst çubuktaki saat/pil gibi alanlarla çakışmayı önler
+      body: SafeArea(
         child: Column(
           children: [
-            // Profil Başlığı: Fotoğraf ve dinamik isim alanı
-            ProfileHeader(
-              name: userData['name'], 
-              onEditPressed: _showEditSheet,
+            // --- SABİT ÜST BAR (Kaymaz) ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+                    onPressed: widget.onBack,
+                  ),
+                  const Text(
+                    'Profil',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined, color: Colors.black87),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 32),
             
-            // Kullanıcı İstatistikleri (Haftalık Odak ve Seri Bilgisi)
-            const StatisticsSection(),
-            const SizedBox(height: 32),
-            
-            // Ruh Hali Takip Grafiği
-            const MoodHistorySection(),
-            const SizedBox(height: 32),
-            
-            // Hesap Bilgileri Listesi: Tam siyah metinli detaylar
-            AccountInfoCard(userData: userData, email: '', birthday: '',), 
-            const SizedBox(height: 32),
+            // --- KAYDIRILABİLİR İÇERİK ---
+            Expanded(
+              child: SingleChildScrollView(
+                // ClampingScrollPhysics: Sayfanın sınırlardan dışarı esnemesini (boşluk kalmasını) engeller
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Profil Başlığı (Resim ve "Profili Düzenle" butonu içerir)
+                    ProfileHeader(
+                      name: userData['name'], 
+                      onEditPressed: _showEditSheet,
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // İstatistikler Bölümü (Odak ve Seri Kartları)
+                    const StatisticsSection(),
+                    const SizedBox(height: 24),
+
+                    // Tamamlanan Görevler Kartı (Görseldeki %75'lik ilerleme)
+                    _buildTaskProgressCard(theme),
+                    const SizedBox(height: 32),
+                    
+                    // Ruh Hali Geçmişi Bölümü (Grafik)
+                    const MoodHistorySection(),
+                    const SizedBox(height: 32),
+                    
+                    // Kişisel Bilgiler / Hesap Kartı
+                    AccountInfoCard(
+                      userData: userData, 
+                      email: userData['email'], 
+                      birthday: userData['bday'],
+                    ), 
+                    
+                    // Alt navigasyon barın üzerine gelmemesi için boşluk
+                    const SizedBox(height: 15),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
-      // Alt Sağdaki Yardımcı Mesajlaşma Butonu
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Buraya ileride chatbot veya mesajlaşma eklenebilir
-        },
-        child: const Icon(Icons.forum),
+    );
+  }
+
+  // Görseldeki "Tamamlanan Görevler" kartını oluşturan yardımcı metod
+  Widget _buildTaskProgressCard(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.primaryColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text('TAMAMLANAN', style: TextStyle(fontSize: 12, color: Colors.black54, letterSpacing: 1.1)),
+              SizedBox(height: 4),
+              Text('42 Görev', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          SizedBox(
+            width: 55,
+            height: 55,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: 0.75,
+                  strokeWidth: 6,
+                  backgroundColor: Colors.white,
+                  color: theme.primaryColor,
+                ),
+                const Text('75%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
