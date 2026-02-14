@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../data/models/blog_model.dart';
+import 'package:moya/data/models/blog_model.dart';
 import 'widgets/blog_app_bar.dart';
 import 'widgets/blog_content_body.dart';
 
@@ -10,12 +10,13 @@ class BlogDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      // Arka plan rengini temanın ana rengine bağladık
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
-          BlogAppBar(post: post), // Üst kısım (Resim)
+          BlogAppBar(post: post),
           SliverToBoxAdapter(
-            child: BlogContentBody(post: post), // Alt kısım (Yazı)
+            child: BlogContentBody(post: post),
           ),
         ],
       ),

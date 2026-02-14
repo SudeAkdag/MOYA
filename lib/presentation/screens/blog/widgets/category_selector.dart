@@ -10,7 +10,7 @@ class CategorySelector extends StatefulWidget {
 
 class _CategorySelectorState extends State<CategorySelector> {
   int selectedIndex = 0;
-  final List<String> categories = ['Tümü', 'Meditasyon', 'Psikoloji', 'Uyku', 'Nefes'];
+  final List<String> categories = ['Tümü', 'Meditasyon', 'Psikoloji', 'Uyku', 'Nefes', 'Egzersiz', 'Farkındalık', 'Diğer'];
 
   @override
   Widget build(BuildContext context) {
