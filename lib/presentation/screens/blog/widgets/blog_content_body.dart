@@ -11,7 +11,6 @@ class BlogContentBody extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      // Kartı yukarı kaydırıyoruz
       transform: Matrix4.translationValues(0, -40, 0),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 25),
       decoration: BoxDecoration(
@@ -21,11 +20,9 @@ class BlogContentBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // BURASI ÖNEMLİ: 
-          // Kategori satırını resmin "gerçekten" altına düşürmek için üstten boşluk veriyoruz.
           const SizedBox(height: 40), 
 
-          // Kategori ve Okuma Süresi Satırı
+          // Kategori ve Okuma Süresi
           Row(
             children: [
               Container(
@@ -53,7 +50,7 @@ class BlogContentBody extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 25), // Başlık ile aradaki mesafeyi biraz açtık
+          const SizedBox(height: 25),
           
           // Makale Başlığı
           Text(
@@ -65,9 +62,10 @@ class BlogContentBody extends StatelessWidget {
           ),
           const SizedBox(height: 15),
 
-          // Giriş/Özet Metni
+          // Giriş/Özet Metni - İKİ YANA YASLANDI
           Text(
             post.description,
+            textAlign: TextAlign.justify, // Satır sonlarını düzeltir
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.7),
               height: 1.6,
@@ -78,16 +76,17 @@ class BlogContentBody extends StatelessWidget {
           const Divider(thickness: 0.8), 
           const SizedBox(height: 20),
           
-          // Ana İçerik Metni
+          // Ana İçerik Metni - İKİ YANA YASLANDI
           Text(
             post.content,
+            textAlign: TextAlign.justify, // Satır sonlarını düzeltir
             style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.8,
-              fontSize: 15,
+              height: 1.6, // Okunabilirliği artırmak için biraz artırıldı
+              fontSize: 16,
             ),
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 30),
           
           _buildAuthorCard(theme),
           const SizedBox(height: 20),
@@ -120,7 +119,6 @@ class BlogContentBody extends StatelessWidget {
                 post.author, 
                 style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)
               ),
-             
             ],
           ),
           const Spacer(),
