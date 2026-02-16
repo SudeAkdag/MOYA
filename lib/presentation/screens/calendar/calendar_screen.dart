@@ -1,221 +1,363 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:moya/data/models/calendar_event_model.dart';
+import 'package:moya/data/services/calendar_service.dart'; // Varsayılan olarak kalacak
+import 'package:moya/presentation/screens/calendar/horizontal_calendar.dart';
+import 'package:moya/presentation/screens/calendar/daily_note_screen.dart';
+import 'package:fl_chart/fl_chart.dart'; // FlChart için gerekli
 
-import 'widgets/widgets.dart';
-
-// Main Screen Widget
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  // HATAYI DÜZELTEN KISIM: Parametre tanımı widget seviyesine alındı
+  final VoidCallback onMenuTap;
+
+  const CalendarScreen({super.key, required this.onMenuTap});
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  late DateTime _displayedMonth;
-  late DateTime _selectedDayDate;
-  final Map<DateTime, List<String>> _notes = {};
-  String _selectedDay = 'Çar'; // Varsayılan gün
-
-  // DÜZELTME: Sınıf içindeki değişkenler 'static const' değilse 'final' olmalıdır.
-  final Color customGreen = const Color(0xFF636E3B); 
-  final Color customCream = const Color(0xFFFFFBE6);
-
-  // Veri Seti
-  final Map<String, Map<String, dynamic>> _dayData = {
-    'Pzt': {
-      'mood': 'Mutlu',
-      'moodSubtitle': 'Haftaya enerjik başladın!',
-      'mostFeltEmotion': 'Neşeli',
-      'completedGoals': 8,
-      'averageEnergy': 8.2,
-      'notes': ['Pazartesi notu 1', 'Pazartesi notu 2'],
-    },
-    'Sal': {
-      'mood': 'Sakin',
-      'moodSubtitle': 'Bugün oldukça dingindi.',
-      'mostFeltEmotion': 'Huzurlu',
-      'completedGoals': 10,
-      'averageEnergy': 7.8,
-      'notes': ['Salı için bir not.'],
-    },
-    'Çar': {
-      'mood': 'Dengeli',
-      'moodSubtitle': 'Duygu durumun bu hafta dengeli.',
-      'mostFeltEmotion': 'Kaygılı',
-      'completedGoals': 12,
-      'averageEnergy': 7.5,
-      'notes': [],
-    },
-    'Per': {
-      'mood': 'Yorgun',
-      'moodSubtitle': 'Biraz dinlenmeye ihtiyacın var gibi.',
-      'mostFeltEmotion': 'Stresli',
-      'completedGoals': 5,
-      'averageEnergy': 4.5,
-      'notes': ['Perşembe günü yapılacaklar...'],
-    },
-    'Cum': {
-      'mood': 'Heyecanlı',
-      'moodSubtitle': 'Hafta sonu planları hazır mı?',
-      'mostFeltEmotion': 'Heyecanlı',
-      'completedGoals': 14,
-      'averageEnergy': 9.0,
-      'notes': ['Cuma akşamı sinema!', 'Arkadaşlarla buluşulacak.'],
-    },
-    'Cmt': {
-      'mood': 'Rahat',
-      'moodSubtitle': 'Hafta sonunun tadını çıkar.',
-      'mostFeltEmotion': 'Rahat',
-      'completedGoals': 15,
-      'averageEnergy': 8.8,
-      'notes': [],
-    },
-    'Paz': {
-      'mood': 'Huzurlu',
-      'moodSubtitle': 'Yeni haftaya hazırlanıyorsun.',
-      'mostFeltEmotion': 'Huzurlu',
-      'completedGoals': 11,
-      'averageEnergy': 7.0,
-      'notes': ['Pazar sabahı kahvaltısı.'],
-    },
-  };
+  late DateTime _focusedDay;
+  late DateTime _selectedDay;
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _displayedMonth = DateTime(now.year, now.month, 1);
-    _selectedDayDate = DateTime(now.year, now.month, now.day);
+    _focusedDay = DateTime.now();
+    _selectedDay = DateTime.now();
   }
 
-  void _handleDaySelected(String day) {
+  void _onDaySelected(DateTime selectedDay) {
     setState(() {
-      _selectedDay = day;
+      _selectedDay = selectedDay;
     });
   }
-
-  DateTime _dateOnly(DateTime date) =>
-      DateTime.utc(date.year, date.month, date.day);
 
   void _changeMonth(int increment) {
-    final newMonth =
-        DateTime(_displayedMonth.year, _displayedMonth.month + increment, 1);
-
-    final now = DateTime.now();
-    final initialMonth = DateTime(now.year, now.month, 1);
-    if (newMonth.isBefore(initialMonth)) {
-      return;
-    }
-
     setState(() {
-      _displayedMonth = newMonth;
+      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + increment, 1);
     });
-  }
-
-  void _addNote(String text) {
-    if (text.trim().isEmpty) return;
-    final dayKey = _dateOnly(_selectedDayDate);
-    setState(() {
-      _notes[dayKey] = [...(_notes[dayKey] ?? []), text.trim()];
-    });
-  }
-
-  void _deleteNote(int index) {
-    final dayKey = _dateOnly(_selectedDayDate);
-    setState(() {
-      _notes[dayKey]?.removeAt(index);
-      if (_notes[dayKey]?.isEmpty ?? false) {
-        _notes.remove(dayKey);
-      }
-    });
-  }
-
-  void _showNoteEntry(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return NoteEntrySheet(
-          initialText: "",
-          onSave: (newText) {
-            _addNote(newText);
-            Navigator.pop(context);
-          },
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentNotes = _notes[_dateOnly(_selectedDayDate)];
-    final dayData = _dayData[_selectedDay]!;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      drawer: Drawer(
-        backgroundColor: customCream,
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 60, left: 24, bottom: 30),
-              color: customGreen,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CircleAvatar(
-                    radius: 35,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 45, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Ayşe Yılmaz',
-                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'ayse.yilmaz@ornek.com',
-                    style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                children: [
-                  _drawerItem(Icons.person_outline, 'Profil', () {}),
-                  _drawerItem(Icons.self_improvement, 'Egzersiz ve Meditasyon', () {}),
-                  _drawerItem(Icons.music_note, 'Müzik', () {}),
-                  _drawerItem(Icons.description_outlined, 'Blog', () {}),
-                  _drawerItem(Icons.bookmark_border, 'Kaydedilenler', () {}),
-                  _drawerItem(Icons.settings_outlined, 'Ayarlar', () {}),
-                  _drawerItem(Icons.info_outline, 'Hakkında', () {}),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Divider(),
-                  ),
-                  _drawerItem(Icons.logout, 'Çıkış Yap', () {}, color: Colors.redAccent),
-                ],
-              ),
-            ),
-          ],
+      backgroundColor: theme.colorScheme.surface,
+      // --- SIDE BAR BUTONU EKLENDİ ---
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
+          onPressed: widget.onMenuTap, // MainWrapper'daki drawer'ı açar
         ),
       ),
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(context),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => SliverContent(
-                dayData: dayData,
-                notes: currentNotes,
-                onNoteButtonTap: () => _showNoteEntry(context),
-                onDeleteNote: _deleteNote,
+      extendBodyBehindAppBar: true, // İçeriğin buton arkasına geçmesi için
+      body: SafeArea(
+        bottom: false, 
+        child: StreamBuilder<List<CalendarEventModel>>(
+          stream: CalendarService.getEventsForMonth(_focusedDay),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text('Veriler yüklenirken bir hata oluştu: ${snapshot.error}',
+                    style: TextStyle(color: theme.colorScheme.onSurface)),
+              );
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final events = snapshot.data ?? [];
+            final weeklyMoods = _calculateWeeklyMoods(events, _selectedDay);
+
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: theme.colorScheme.surface.withOpacity(0.9),
+                  pinned: true,
+                  // --- BAŞLIKLARI AŞAĞI ÇEKMEK İÇİN YÜKSEKLİK ARTIRILDI ---
+                  expandedHeight: 180, 
+                  elevation: 0,
+                  automaticallyImplyLeading: false, 
+                  title: const SizedBox.shrink(),
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _buildMonthSelector(theme),
+                          const SizedBox(height: 12),
+                          HorizontalCalendar(
+                            focusedDay: _focusedDay,
+                            selectedDay: _selectedDay,
+                            onDaySelected: _onDaySelected,
+                            events: events, 
+                            theme: theme,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildListDelegate(
+                    [
+                      _buildWeeklyMoodSection(theme, weeklyMoods),
+                      _buildStatisticsSection(theme),
+                      _buildDailyNoteButton(theme),
+                      const SizedBox(height: 100), 
+                    ],
+                  ),
+                )
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // --- BURADAN AŞAĞISINA DOKUNULMADI, ORİJİNAL KODUN DEVAM EDİYOR ---
+
+  Widget _buildMonthSelector(ThemeData theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _buildNavButton(theme, Icons.chevron_left, () => _changeMonth(-1)),
+        SizedBox(
+          width: 150,
+          child: Center(
+            child: Text(
+              DateFormat.yMMMM('tr_TR').format(_focusedDay),
+              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        _buildNavButton(theme, Icons.chevron_right, () => _changeMonth(1)),
+      ],
+    );
+  }
+
+  Widget _buildNavButton(ThemeData theme, IconData icon, VoidCallback onPressed) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        customBorder: const CircleBorder(),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: theme.colorScheme.onSurface.withOpacity(0.7)),
+        ),
+      ),
+    );
+  }
+
+  Map<int, double> _calculateWeeklyMoods(List<CalendarEventModel> monthEvents, DateTime selectedDay) {
+    final Map<int, List<double>> moodByWeekday = {};
+    final startOfWeek = DateUtils.dateOnly(selectedDay.subtract(Duration(days: selectedDay.weekday - 1)));
+    final endOfWeek = startOfWeek.add(const Duration(days: 7));
+
+    final weekEvents = monthEvents.where((event) {
+      final eventDate = DateUtils.dateOnly(event.date);
+      return (eventDate.isAtSameMomentAs(startOfWeek) || eventDate.isAfter(startOfWeek)) &&
+          eventDate.isBefore(endOfWeek) &&
+          event.mood != null;
+    });
+
+    for (var event in weekEvents) {
+      moodByWeekday.putIfAbsent(event.date.weekday, () => []).add(event.mood!);
+    }
+
+    return moodByWeekday.map((key, value) => MapEntry(key, value.reduce((a, b) => a + b) / value.length));
+  }
+
+
+  LineChartData _moodChartData(ThemeData theme, Map<int, double> weeklyMoods) {
+    List<FlSpot> spots = weeklyMoods.entries.map((entry) {
+      return FlSpot(entry.key.toDouble(), entry.value);
+    }).toList();
+
+    spots.sort((a, b) => a.x.compareTo(b.x));
+
+    final isSelectedDayInChart = spots.any((s) => s.x.toInt() == _selectedDay.weekday);
+
+    return LineChartData(
+      gridData: FlGridData(
+        show: true,
+        getDrawingHorizontalLine: (value) { 
+          return const FlLine(color: Colors.white10, strokeWidth: 0.5);
+        },
+        drawVerticalLine: false, 
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: 1, 
+            getTitlesWidget: (double value, TitleMeta meta) {
+              final isSelected = value.toInt() == _selectedDay.weekday;
+              final style = TextStyle(
+                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.6),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 12,
+              );
+              String text = '';
+              switch (value.toInt()) {
+                case 1: text = 'Pzt'; break;
+                case 2: text = 'Sal'; break;
+                case 3: text = 'Çar'; break;
+                case 4: text = 'Per'; break;
+                case 5: text = 'Cum'; break;
+                case 6: text = 'Cmt'; break;
+                case 7: text = 'Paz'; break;
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Text(text, style: style, textAlign: TextAlign.center),
+              );
+            },
+          ),
+        ),
+        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)), 
+      ),
+      borderData: FlBorderData(show: false), 
+      minX: 1,
+      maxX: 7,
+      minY: 1,
+      maxY: 10,
+      lineBarsData: [
+        LineChartBarData(
+          spots: spots,
+          isCurved: true,
+          color: theme.colorScheme.primary,
+          barWidth: 3, 
+          isStrokeCapRound: true,
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, barData, index) {
+              return FlDotCirclePainter(
+                radius: 4,
+                color: theme.colorScheme.surface,
+                strokeColor: theme.colorScheme.primary,
+                strokeWidth: 2,
+              );
+            },
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: [theme.colorScheme.primary.withOpacity(0.3), theme.colorScheme.primary.withOpacity(0)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        if (isSelectedDayInChart)
+          LineChartBarData(
+            spots: [spots.firstWhere((s) => s.x.toInt() == _selectedDay.weekday)],
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                radius: 8,
+                color: theme.colorScheme.primary.withOpacity(0.3),
               ),
-              childCount: 1,
+            ),
+            color: Colors.transparent,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildWeeklyMoodSection(ThemeData theme, Map<int, double> weeklyMoods) {
+    double averageMood = 0;
+    if (weeklyMoods.isNotEmpty) {
+      averageMood = weeklyMoods.values.reduce((a, b) => a + b) / weeklyMoods.length;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Haftalık Ruh Hali', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('Duygu durumun bu hafta dengeli.', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 15)),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.trending_up, color: theme.colorScheme.primary, size: 16),
+                    const SizedBox(width: 4),
+                    Text('+12%', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              )
+            ],
+          ),
+          const SizedBox(height: 20),
+          _GlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('ORTALAMA MOOD', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+                        Text(averageMood.toStringAsFixed(1), style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 32, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(width: 8, height: 8, decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle)),
+                        const SizedBox(width: 8),
+                        Text('Mood', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.8), fontSize: 12)),
+                      ],
+                    )
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 160,
+                  child: weeklyMoods.isNotEmpty
+                      ? LineChart(_moodChartData(theme, weeklyMoods))
+                      : Center(
+                          child: Text(
+                          'Bu haftaya ait ruh hali verisi bulunamadı.',
+                          style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                        )),
+                ),
+              ],
             ),
           ),
         ],
@@ -223,48 +365,161 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _drawerItem(IconData icon, String title, VoidCallback onTap, {Color color = const Color(0xFF4A4A4A)}) {
-    return ListTile(
-      leading: Icon(icon, color: color, size: 26),
-      title: Text(title, style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w500)),
-      onTap: onTap,
+  Widget _buildStatisticsSection(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('İstatistiklerim', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          _buildDominantEmotionCard(theme),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _buildGoalsCard(theme)),
+              const SizedBox(width: 12),
+              Expanded(child: _buildEnergyCard(theme)),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  SliverAppBar _buildSliverAppBar(BuildContext context) {
-    final theme = Theme.of(context);
-    return SliverAppBar(
-      backgroundColor: theme.scaffoldBackgroundColor.withAlpha(217),
-      elevation: 0,
-      pinned: true,
-      expandedHeight: 180.0,
-      leading: Builder(
-        builder: (context) => IconButton(
-          icon: Icon(Icons.menu, color: theme.colorScheme.onBackground),
-          onPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
-        ),
+  Widget _buildDominantEmotionCard(ThemeData theme) {
+    return _GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('En Çok Hissettiğin Duygu', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
+              const SizedBox(height: 4),
+              Text('Kaygılı', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('Son 7 günde 3 kez', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.4), fontSize: 12)),
+            ],
+          ),
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: theme.colorScheme.primary,
+            child: const Icon(Icons.sentiment_dissatisfied_outlined, color: Colors.white, size: 28),
+          )
+        ],
       ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          children: <Widget>[
-            Positioned(
-              bottom: 90.0,
-              left: 0,
-              right: 0,
-              child: MonthSelector(
-                selectedDate: _displayedMonth,
-                onMonthChanged: _changeMonth,
-              ),
+    );
+  }
+
+  Widget _buildGoalsCard(ThemeData theme) {
+    return _GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(radius: 16, backgroundColor: theme.colorScheme.primary, child: const Icon(Icons.check_circle_outline, size: 20, color: Colors.white)),
+          const SizedBox(height: 16),
+          Text.rich(
+            TextSpan(
+              text: '12',
+              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 28, fontWeight: FontWeight.bold),
+              children: [TextSpan(text: '/15', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 14, fontWeight: FontWeight.normal))],
             ),
-          ],
+          ),
+          const SizedBox(height: 4),
+          Text('Tamamlanan Hedefler', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnergyCard(ThemeData theme) {
+    return _GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(radius: 16, backgroundColor: theme.colorScheme.primary, child: const Icon(Icons.bolt, size: 20, color: Colors.white)),
+          const SizedBox(height: 16),
+          Text('7.5', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 28, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text('Ortalama Enerjin', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyNoteButton(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Material(
+        color: theme.colorScheme.onSurface.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DailyNoteScreen(selectedDate: _selectedDay),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: theme.colorScheme.primary,
+                  child: Icon(Icons.edit_note, color: theme.colorScheme.surface),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Günlük Not Ekle', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text('Bugün nasıl hissettiğini yaz...', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: theme.colorScheme.onSurface.withOpacity(0.4), size: 16),
+              ],
+            ),
+          ),
         ),
       ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(90.0),
-        child: HorizontalCalendarStrip(onDaySelected: _handleDaySelected),
+    );
+  }
+}
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final BorderRadius? borderRadius;
+
+  const _GlassCard({required this.child, this.padding, this.borderRadius});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onSurface.withOpacity(0.08),
+        borderRadius: borderRadius ?? BorderRadius.circular(24), 
+        border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1)),
       ),
+      child: child,
     );
   }
 }

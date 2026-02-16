@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Gerekli Widget Importları (Dosya yollarını projenize göre kontrol edin)
+// Gerekli Widget Importları (Dosya yolları projenize göre kontrol edin)
 import 'widgets/profile_header.dart';
 import 'widgets/statistics_section.dart';
 import 'widgets/mood_history_section.dart';
@@ -53,11 +53,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      // SafeArea üst çubuktaki saat/pil gibi alanlarla çakışmayı önler
       body: SafeArea(
         child: Column(
           children: [
-            // --- SABİT ÜST BAR (Kaymaz) ---
+            // --- SABİT ÜST BAR ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
@@ -65,7 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-                    onPressed: widget.onBack,
+                    // MainWrapper'daki hafıza indexine (Müzik vb.) geri döner
+                    onPressed: widget.onBack, 
                   ),
                   const Text(
                     'Profil',
@@ -74,6 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   IconButton(
                     icon: const Icon(Icons.settings_outlined, color: Colors.black87),
                     onPressed: () {
+                      // Ayarlar sayfasını açar
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const SettingsScreen()),
@@ -87,40 +88,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // --- KAYDIRILABİLİR İÇERİK ---
             Expanded(
               child: SingleChildScrollView(
-                // ClampingScrollPhysics: Sayfanın sınırlardan dışarı esnemesini (boşluk kalmasını) engeller
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    // Profil Başlığı (Resim ve "Profili Düzenle" butonu içerir)
                     ProfileHeader(
                       name: userData['name'], 
                       onEditPressed: _showEditSheet,
                     ),
                     const SizedBox(height: 32),
                     
-                    // İstatistikler Bölümü (Odak ve Seri Kartları)
                     const StatisticsSection(),
                     const SizedBox(height: 24),
 
-                    // Tamamlanan Görevler Kartı (Görseldeki %75'lik ilerleme)
                     _buildTaskProgressCard(theme),
                     const SizedBox(height: 32),
                     
-                    // Ruh Hali Geçmişi Bölümü (Grafik)
                     const MoodHistorySection(),
                     const SizedBox(height: 32),
                     
-                    // Kişisel Bilgiler / Hesap Kartı
                     AccountInfoCard(
                       userData: userData, 
                       email: userData['email'], 
                       birthday: userData['bday'],
                     ), 
                     
-                    // Alt navigasyon barın üzerine gelmemesi için boşluk
-                    const SizedBox(height: 15),
+                    // Alt navigasyon barın (CustomBottomNavBar) içeriği kapatmaması için boşluk
+                    const SizedBox(height: 100), 
                   ],
                 ),
               ),
@@ -131,7 +126,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Görseldeki "Tamamlanan Görevler" kartını oluşturan yardımcı metod
   Widget _buildTaskProgressCard(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(20),

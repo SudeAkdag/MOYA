@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moya/core/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 
 import 'core/theme/bloc/theme_bloc.dart';
@@ -27,13 +27,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 🔥 TEST KODU: Firestore bağlantısını terminalden kontrol et
-  try {
-    var snapshot = await FirebaseFirestore.instance.collection('meditasyon').get();
-    print("🔥 Firestore'daki doküman sayısı: ${snapshot.docs.length}");
-  } catch (e) {
-    print("❌ Firestore hatası: $e");
-  }
+
 
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
@@ -59,6 +53,16 @@ class MyApp extends StatelessWidget {
             title: 'MOYA',
             debugShowCheckedModeBanner: false,
             theme: AppThemes.getTheme(state.themeType),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('tr', 'TR'),
+              Locale('en', 'US'),
+            ],
+            locale: const Locale('tr', 'TR'),
             home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
           );
         },

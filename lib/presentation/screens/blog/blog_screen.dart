@@ -6,7 +6,7 @@ import 'widgets/category_selector.dart';
 import 'widgets/recent_blog_tile.dart';
 
 class BlogScreen extends StatefulWidget {
-  const BlogScreen({super.key});
+  const BlogScreen({super.key, required void Function() onMenuTap});
 
   @override
   State<BlogScreen> createState() => _BlogScreenState();

@@ -23,27 +23,52 @@ class _MainWrapperState extends State<MainWrapper> {
 
   // Navigasyon index yönetimi
   int _currentIndex = 2; // Başlangıç ekranı: Ana Sayfa
-  int _lastIndex = 2;    // Ayarlardan veya profilden geri dönüldüğünde kullanılacak hafıza indexi
+  int _lastIndex = 2;    // Geri dönüldüğünde kullanılacak hafıza indexi
 
   // Sayfaları oluşturan yardımcı fonksiyon
   Widget _buildPage(int index) {
     switch (index) {
-      case 0: return const MeditationScreen();
-      case 1: return MusicScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      // Egzersiz ve Meditasyon (Side bar eklendi)
+      case 0: 
+        return MeditationScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      
+      // Müzik Sayfası
+      case 1: 
+        return MusicScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      
+      // Ana Sayfa
       case 2: 
         return HomeScreenNew(
           onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
-          onProfileTap: () => _onItemTapped(5), // SÖ butonuna basınca profile git
+          onProfileTap: () => _onItemTapped(5),
         );
-      case 3: return const CalendarScreen();
-      case 4: return const BlogScreen();
+      
+      // Takvim Sayfası (Hata giderildi, onMenuTap eklendi)
+      case 3: 
+        return CalendarScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      
+      // Blog Sayfası (Side bar eklendi)
+      case 4: 
+        return BlogScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      
+      // Profil Sayfası (Geri dönüş hafızaya bağlandı)
       case 5: 
         return ProfileScreen(
-          onBack: () => _onItemTapped(2), // Geri tuşuna basınca ana sayfaya (index 2) dön
+          onBack: () {
+            setState(() {
+              _currentIndex = _lastIndex; 
+            });
+          },
         );
+      
       case 6: return const RecordedScreen();
       case 7: return const ChatbotScreen();
-      case 8: return const MeditationScreen();
+      
+      // Alternatif Meditasyon Girişi
+      case 8: 
+        return MeditationScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      
+      // Ayarlar Sayfası
       case 9: 
         return SettingsScreen(
           onBack: () {
@@ -52,6 +77,7 @@ class _MainWrapperState extends State<MainWrapper> {
             });
           },
         );
+      
       default:
         return const Center(child: Text("Sayfa Bulunamadı"));
     }
@@ -61,8 +87,9 @@ class _MainWrapperState extends State<MainWrapper> {
   void _onItemTapped(int index) {
     if (_currentIndex != index) {
       setState(() {
-        // Eğer Ayarlar'a (9) gitmiyorsak, şu anki sayfayı "son aktif sayfa" olarak kaydet
-        if (_currentIndex != 9) {
+        // Eğer Profil (5) veya Ayarlar (9) sayfasına geçiş yapılıyorsa, 
+        // mevcut sayfayı "son aktif sayfa" olarak kaydet.
+        if (index == 5 || index == 9) {
           _lastIndex = _currentIndex;
         }
         _currentIndex = index;
