@@ -296,51 +296,33 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
 
 
   Future<void> _incrementBreathingExerciseCount() async {
-
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return; // Kullanıcı yoksa işlem yapma
+    
     final today = DateTime.now();
-
     final startOfToday = DateTime(today.year, today.month, today.day);
 
-
-
     final query = await FirebaseFirestore.instance
-
         .collection('calendar')
-
-        .where('userId', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-
+        .where('userId', isEqualTo: user.uid)
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfToday))
-
         .where('date', isLessThan: Timestamp.fromDate(startOfToday.add(const Duration(days: 1))))
-
         .limit(1)
-
         .get();
 
 
 
     if (query.docs.isNotEmpty) {
-
       final docId = query.docs.first.id;
-
       await FirebaseFirestore.instance.collection('calendar').doc(docId).update({
-
         'completedBreathingExercises': FieldValue.increment(1),
-
       });
-
     } else {
-
       await CalendarService.addDailyEntry({
-
         'date': Timestamp.fromDate(startOfToday),
-
         'completedBreathingExercises': 1,
-
       });
-
     }
-
   }
 
 
@@ -560,7 +542,7 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
 
               technique: technique,
 
-              isSelected: technique.title == _selectedTechnique.title,
+              isSelected: technique == _selectedTechnique,
 
               onTap: () => _onTechniqueSelected(technique),
 
