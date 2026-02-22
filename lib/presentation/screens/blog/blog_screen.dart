@@ -6,7 +6,8 @@ import 'widgets/category_selector.dart';
 import 'widgets/recent_blog_tile.dart';
 
 class BlogScreen extends StatefulWidget {
-  const BlogScreen({super.key, required void Function() onMenuTap});
+  final void Function() onMenuTap;
+  const BlogScreen({super.key, required this.onMenuTap});
 
   @override
   State<BlogScreen> createState() => _BlogScreenState();
@@ -20,7 +21,27 @@ class _BlogScreenState extends State<BlogScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bilgi ve Farkındalık'), centerTitle: false),
+      // Arka planı MainWrapper'dan devralması için şeffaf veya null bırakıyoruz
+      backgroundColor: Colors.transparent, 
+      appBar: AppBar(
+        // BAŞLIĞI TAM ORTALIYORUZ
+        centerTitle: true, 
+        title: Text(
+          'Bilgi ve Farkındalık',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.black, // Temaya göre theme.colorScheme.onSurface de olabilir
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        // SOL ÜST MENÜ BUTONU
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.black),
+          onPressed: widget.onMenuTap, // MainWrapper'daki drawer'ı tetikler
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
       body: StreamBuilder<List<BlogModel>>(
         stream: BlogService.getBlogsStream(),
         builder: (context, snapshot) {
@@ -28,31 +49,18 @@ class _BlogScreenState extends State<BlogScreen> {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
           final allPosts = snapshot.data!;
+          if (allPosts.isEmpty) return const Center(child: Text("Henüz blog eklenmemiş."));
 
-          // Kategori Filtreleme
+          // Filtreleme mantığı
           final filteredPosts = selectedCategory == "Tümü"
               ? allPosts
               : allPosts.where((post) => 
                   post.category.trim().toLowerCase() == selectedCategory.trim().toLowerCase()).toList();
 
-          // Haftanın Makalesi (isFeatured: true olanı bulur, yoksa ilkini alır)
           final featuredPost = allPosts.firstWhere(
-  (p) => p.isFeatured, 
-  orElse: () => allPosts.isNotEmpty 
-      ? allPosts.first 
-      : BlogModel(
-          title: "Yükleniyor...", 
-          author: "", 
-          category: "", 
-          description: "", 
-          content: "", 
-          imageUrl: "", 
-          readTime: "", 
-          date: ""
-        )
-);
-
-          if (allPosts.isEmpty) return const Center(child: Text("Henüz blog eklenmemiş."));
+            (p) => p.isFeatured, 
+            orElse: () => allPosts.first,
+          );
 
           return CustomScrollView(
             slivers: [
@@ -95,14 +103,15 @@ class _BlogScreenState extends State<BlogScreen> {
                 ),
               ),
 
-              // Dinamik Liste
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => RecentBlogTile(post: filteredPosts[index]),
                   childCount: filteredPosts.length,
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 50)),
+              
+              // Alt barın içeriği kapatmaması için güvenli boşluk
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           );
         },
