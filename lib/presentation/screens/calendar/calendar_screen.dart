@@ -49,9 +49,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        titleSpacing: 0,
         leading: IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
           onPressed: widget.onMenuTap, // MainWrapper'daki drawer'ı açar
+        ),
+        title: Text(
+          'Takvim',
+          style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
       extendBodyBehindAppBar: true, // İçeriğin buton arkasına geçmesi için
@@ -91,7 +96,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
                       ),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _buildMonthSelector(theme),
                           const SizedBox(height: 12),
@@ -129,22 +134,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // --- BURADAN AŞAĞISINA DOKUNULMADI, ORİJİNAL KODUN DEVAM EDİYOR ---
 
   Widget _buildMonthSelector(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildNavButton(theme, Icons.chevron_left, () => _changeMonth(-1)),
-        SizedBox(
-          width: 150,
-          child: Center(
-            child: Text(
-              DateFormat.yMMMM('tr_TR').format(_focusedDay),
-              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildNavButton(theme, Icons.chevron_left, () => _changeMonth(-1)),
+          Text(
+            DateFormat.yMMMM('tr_TR').format(_focusedDay),
+            style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold),
           ),
-        ),
-        _buildNavButton(theme, Icons.chevron_right, () => _changeMonth(1)),
-      ],
+          _buildNavButton(theme, Icons.chevron_right, () => _changeMonth(1)),
+        ],
+      ),
     );
   }
 

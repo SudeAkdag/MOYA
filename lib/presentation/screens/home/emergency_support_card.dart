@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EmergencySupportCard extends StatelessWidget {
   const EmergencySupportCard({super.key});
@@ -10,7 +11,17 @@ class EmergencySupportCard extends StatelessWidget {
       color: theme.colorScheme.error.withAlpha(25),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: () {},
+        onTap: () async {
+          final Uri launchUri = Uri(scheme: 'tel', path: '153'); // Destek hattı numarası
+          if (!await launchUrl(launchUri)) {
+            if (!context.mounted) return;
+            // Eğer arama başlatılamazsa kullanıcıya geri bildirim göster.
+            // Bu genellikle manifest/Info.plist dosyasında gerekli izinlerin olmamasından kaynaklanır.
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Arama uygulaması başlatılamadı.')),
+            );
+          }
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
