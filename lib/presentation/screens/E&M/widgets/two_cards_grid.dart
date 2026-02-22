@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:moya/presentation/screens/breathing/breathing_screen.dart';
+import 'package:moya/presentation/screens/E&M/widgets/breathing_screen/breathing_screen.dart';
 import 'small_meditation_card.dart';
 
 class TwoCardsGrid extends StatelessWidget {
