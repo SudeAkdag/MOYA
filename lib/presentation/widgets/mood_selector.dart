@@ -15,7 +15,7 @@ class _MoodSelectorState extends State<MoodSelector> {
   // Mood renklerini sabit tutuyoruz çünkü bunlar duyguları temsil eder.
   // Ancak AppColors sildiğimiz için buraya doğrudan renkleri veya yeni sabitleri ekliyoruz.
   final List<Map<String, dynamic>> _moods = const [
-    {'icon': Icons.sentiment_very_dissatisfied, 'label': 'Kötü', 'color': Color(0xFFEF5350)},
+    {'icon': Icons.sentiment_very_dissatisfied, 'label': 'Kötü', 'color': Color.fromARGB(255, 82, 54, 54)},
     {'icon': Icons.sentiment_dissatisfied, 'label': 'Gergin', 'color': Colors.orangeAccent},
     {'icon': Icons.sentiment_neutral, 'label': 'Nötr', 'color': Color(0xFFFFCA28)},
     {'icon': Icons.sentiment_satisfied, 'label': 'İyi', 'color': Colors.lightGreen},
