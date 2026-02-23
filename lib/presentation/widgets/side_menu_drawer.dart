@@ -48,12 +48,13 @@ class SideMenuDrawer extends StatelessWidget {
 
           // Menü Öğeleri
           _buildMenuItem(theme, Icons.person_outline, "Profil", () => onMenuTap(5)),
-          _buildMenuItem(theme, Icons.self_improvement, "Egzersiz ve Meditasyon", () => onMenuTap(8)),
+          // Düzeltme yapıldı: MainWrapper'daki case 0'a yönlendirildi.
+          _buildMenuItem(theme, Icons.self_improvement, "Egzersiz ve Meditasyon", () => onMenuTap(0)),
           _buildMenuItem(theme, Icons.music_note, "Müzik", () => onMenuTap(1)),
           _buildMenuItem(theme, Icons.article_outlined, "Blog", () => onMenuTap(4)),
           _buildMenuItem(theme, Icons.bookmark_border, "Kaydedilenler", () => onMenuTap(6)),
           _buildMenuItem(theme, Icons.settings, "Ayarlar", () => onMenuTap(9)),
-         
+          
 
           const Divider(),
 
@@ -70,22 +71,23 @@ class SideMenuDrawer extends StatelessWidget {
       ),
     );
   }
-void _handleLogout(BuildContext context, LoginViewModel viewModel) async {
-  // Drawer'ı kapat
-  Navigator.of(context).pop();
 
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('isLoggedIn', false);
+  void _handleLogout(BuildContext context, LoginViewModel viewModel) async {
+    // Drawer'ı kapat
+    Navigator.of(context).pop();
 
-  // API logout
-  await viewModel.logout();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
 
-  // 🔥 TÜM STACK'İ SİL → LOGIN'E GİT
-  navigatorKey.currentState!.pushAndRemoveUntil(
-    MaterialPageRoute(builder: (_) => const LoginScreen()),
-    (route) => false,
-  );
-}
+    // API logout
+    await viewModel.logout();
+
+    // 🔥 TÜM STACK'İ SİL → LOGIN'E GİT
+    navigatorKey.currentState!.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
 
   Widget _buildMenuItem(ThemeData theme, IconData icon, String title, VoidCallback onTap) {
     return ListTile(
