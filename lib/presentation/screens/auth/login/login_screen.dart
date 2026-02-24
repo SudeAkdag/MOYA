@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:moya/main.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Paket eklendi
-import '../widgets/auth_text_field.dart';
-import 'login_view_model.dart';
-import '../widgets/login_header.dart';
-import '../widgets/login_button.dart';
-import '../widgets/login_footer.dart';
-import '../widgets/forgot_password_button.dart';
+import 'widgets/auth_text_field.dart';
+import '../../../../data/models/login_view_model.dart';
+import 'widgets/login_header.dart';
+import 'widgets/login_button.dart';
+import 'widgets/login_footer.dart';
+import 'widgets/forgot_password_button.dart';
 import '../../main_wrapper.dart'; 
 
 class LoginScreen extends StatefulWidget {

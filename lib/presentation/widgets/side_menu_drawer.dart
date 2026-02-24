@@ -3,7 +3,7 @@ import 'package:moya/main.dart'; // 🔥 navigatorKey buradan gelmeli
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/auth/login/login_screen.dart';
-import '../screens/auth/login/login_view_model.dart';
+import '../../data/models/login_view_model.dart';
 
 class SideMenuDrawer extends StatelessWidget {
   final Function(int) onMenuTap;
