@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 
 class LoginViewModel extends ChangeNotifier {
@@ -9,38 +10,25 @@ class LoginViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Giriş yapma fonksiyonu
   Future<bool> login(String email, String password) async {
+    if (email.isEmpty || password.isEmpty) {
+      _errorMessage = "Lütfen tüm alanları doldurun.";
+      notifyListeners();
+      return false;
+    }
+
     _setLoading(true);
     _errorMessage = null;
+
     try {
       final result = await _authService.login(email, password);
-      if (!result) {
-        _errorMessage = "E-posta veya şifre hatalı.";
-      }
       _setLoading(false);
       return result;
     } catch (e) {
-      _errorMessage = "Hata oluştu: $e";
+      // Servisten fırlatılan (rethrow) mesajı burada yakalıyoruz
+      _errorMessage = e.toString(); 
       _setLoading(false);
       return false;
-    }
-  }
-
-  // --- BURAYI EKLEDİK ---
-  // Çıkış yapma fonksiyonu
-// Çıkış yapma fonksiyonu
-  Future<void> logout() async {
-    // Çıkış işleminde genellikle loading'e gerek yoktur, 
-    // çünkü zaten sayfadan ayrılıyoruz.
-    _errorMessage = null;
-    try {
-      await _authService.logout();
-      // Önemli: Burada _setLoading(false) veya notifyListeners() 
-      // çağırmaktan kaçınmalıyız çünkü widget ağacı o sırada yok ediliyor olabilir.
-    } catch (e) {
-      _errorMessage = "Çıkış yapılırken bir hata oluştu: $e";
-      notifyListeners(); // Sadece hata varsa haber ver
     }
   }
 
@@ -48,4 +36,21 @@ class LoginViewModel extends ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
+
+  Future<void> logout() async {
+    _errorMessage = null;
+    try {
+      await _authService.logout();
+      
+      // ÇIKIŞ YAPILDIĞINDA LOCAL VERİYİ SİL
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('isLoggedIn'); // veya setBool('isLoggedIn', false)
+      
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = "Çıkış yapılırken bir hata oluştu: $e";
+      notifyListeners();
+    }
+  }
+  
 }

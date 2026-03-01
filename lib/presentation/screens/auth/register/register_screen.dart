@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:moya/data/models/user_model.dart';
 import '../../main_wrapper.dart';
@@ -19,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _userController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController(); 
   final _phoneController = TextEditingController();
   final _bdayController = TextEditingController();
 
@@ -33,66 +35,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _userController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     _phoneController.dispose();
     _bdayController.dispose();
     super.dispose();
   }
 
-  // register_screen.dart içindeki _onComplete metodunu bununla değiştirin:
+  // KAYIT FONKSİYONU
+  Future<void> _onComplete() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Lütfen Ad, E-posta ve Şifre alanlarını doldurun.")),
+      );
+      return;
+    }
 
-Future<void> _onComplete() async {
-  // 1. Basit bir boş alan kontrolü
-  if (_nameController.text.isEmpty || _emailController.text.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Lütfen zorunlu alanları doldurun.")),
-    );
-    return;
-  }
+    if (_passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Şifre en az 6 karakter olmalıdır.")),
+      );
+      return;
+    }
 
-  try {
-    // Yükleniyor göstergesi göster (İsteğe bağlı)
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
 
-    // 2. Veri modelini oluştur
-    final newUser = UserModel(
-      fullName: _nameController.text.trim(),
-      username: _userController.text.trim(),
-      email: _emailController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
-      birthDate: _bdayController.text.trim(),
-      gender: _selectedGender,
-      focusAreas: _selectedAreas,
-    );
+      // ADIM 1: Firebase Auth ile kullanıcıyı OLUŞTUR
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-    // 3. VERİTABANINA KAYDET (Firestore)
-    // 'users' koleksiyonuna kullanıcının e-postasıyla (veya UID ile) kaydediyoruz
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(newUser.email) // E-posta benzersiz olduğu için döküman ID'si yapabiliriz
-        .set(newUser.toMap());
+      // ADIM 2: Veri modelini oluştur
+      final newUser = UserModel(
+        fullName: _nameController.text.trim(),
+        username: _userController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        birthDate: _bdayController.text.trim(),
+        gender: _selectedGender,
+        focusAreas: _selectedAreas,
+      );
 
-    if (mounted) {
-      Navigator.pop(context); // Loading göstergesini kapat
+      // ADIM 3: Firestore'a kaydet (UID kullanarak)
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set(newUser.toMap());
 
-      // 4. Ana sayfaya yönlendir
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const MainWrapper()),
-        (route) => false,
+      if (mounted) {
+        Navigator.pop(context); // Loading kapat
+
+        // ADIM 4: Ana sayfaya yönlendir
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      debugPrint("Kayıt Hatası: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Kayıt başarısız: $e")),
       );
     }
-  } catch (e) {
-    if (mounted) Navigator.pop(context); // Hatada loading'i kapat
-    debugPrint("Firestore Kayıt Hatası: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Kayıt başarısız: $e")),
-    );
   }
-}
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -119,14 +132,22 @@ Future<void> _onComplete() async {
             const Text("YOLCULUĞUN BAŞLIYOR", style: TextStyle(fontSize: 10, letterSpacing: 1, color: Colors.grey)),
             
             _buildDivider(theme, "TEMEL BİLGİLER"),
-            RegisterTextField(label: "AD SOYAD", icon: Icons.person_outline, controller: _nameController),
-            RegisterTextField(label: "E-POSTA", icon: Icons.mail_outline, controller: _emailController),
+            RegisterTextField(label: "AD SOYAD", icon: Icons.person_outline, controller: _nameController, isPassword: false),
+            RegisterTextField(label: "E-POSTA", icon: Icons.mail_outline, controller: _emailController, isPassword: false),
+            
+            // ŞİFRE ALANI
+            RegisterTextField(
+              label: "ŞİFRE", 
+              icon: Icons.lock_outline, 
+              controller: _passwordController,
+              isPassword: true, 
+            ),
             
             Row(
               children: [
-                Expanded(child: RegisterTextField(label: "KULLANICI ADI", icon: Icons.alternate_email, controller: _userController)),
+                Expanded(child: RegisterTextField(label: "KULLANICI ADI", icon: Icons.alternate_email, controller: _userController, isPassword: false)),
                 const SizedBox(width: 16),
-                Expanded(child: RegisterTextField(label: "TELEFON", icon: Icons.phone_android, controller: _phoneController)),
+                Expanded(child: RegisterTextField(label: "TELEFON", icon: Icons.phone_android, controller: _phoneController, isPassword: false)),
               ],
             ),
 
@@ -135,7 +156,7 @@ Future<void> _onComplete() async {
               children: [
                 Expanded(child: _buildGenderDropdown(theme)),
                 const SizedBox(width: 16),
-                Expanded(child: RegisterTextField(label: "DOĞUM YILI", icon: Icons.calendar_today_outlined, controller: _bdayController)),
+                Expanded(child: RegisterTextField(label: "DOĞUM YILI", icon: Icons.calendar_today_outlined, controller: _bdayController, isPassword: false)),
               ],
             ),
 
