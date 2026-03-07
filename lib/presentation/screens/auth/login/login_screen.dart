@@ -75,31 +75,41 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _onLoginPressed(LoginViewModel viewModel, ThemeData theme) async {
+    // Klavyeyi kapat
+    FocusScope.of(context).unfocus();
+
     final success = await viewModel.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
-    if (success && mounted) {
-      // 1. Oturumu Kaydet
+    if (!mounted) return;
+
+    if (success) {
+      // 1. Oturumu Yerel Hafızaya Kaydet
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
 
-      // 2. Navigasyon (En sağlam yöntem)
-      if (mounted) {
-        // pushAndRemoveUntil kullanarak arkadaki her şeyi temizleyip temiz bir sayfa açıyoruz
-        navigatorKey.currentState!.pushAndRemoveUntil(
-  MaterialPageRoute(builder: (_) => const MainWrapper()),
-  (route) => false,
-);
-
-      }
-    } else if (mounted) {
+      // 2. Yönlendirme
+      navigatorKey.currentState!.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainWrapper()),
+        (route) => false,
+      );
+    } else {
+      // Hata mesajını göster
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(viewModel.errorMessage ?? "Giriş başarısız"),
-          backgroundColor: theme.colorScheme.error, // Hata olduğu için error rengi daha mantıklı
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(child: Text(viewModel.errorMessage ?? "Giriş başarısız")),
+            ],
+          ),
+          backgroundColor: theme.colorScheme.error,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(20),
         ),
       );
     }

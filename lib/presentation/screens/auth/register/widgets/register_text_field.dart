@@ -11,7 +11,7 @@ class RegisterTextField extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.controller,
-    this.keyboardType = TextInputType.text,
+    this.keyboardType = TextInputType.text, required bool isPassword,
   });
 
   @override

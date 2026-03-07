@@ -1,18 +1,60 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../../data/models/blog_model.dart';
-import '../blog_detail_screen.dart'; // Detay sayfasını buraya import ediyoruz
+import '../blog_detail_screen.dart';
 
 class RecentBlogTile extends StatelessWidget {
   final BlogModel post;
   const RecentBlogTile({super.key, required this.post});
 
+  // --- 1. KAYDETME FONKSİYONU (TOGGLE) ---
+  Future<void> _toggleSave(BuildContext context, bool isCurrentlySaved) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Lütfen önce giriş yapın!")),
+        );
+        return;
+      }
+
+      final docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('saved_blogs')
+          .doc(post.id);
+
+      if (isCurrentlySaved) {
+        await docRef.delete();
+      } else {
+        await docRef.set(post.toMap());
+      }
+    } catch (e) {
+      debugPrint("Kayıt hatası: $e");
+    }
+  }
+
+  // --- 2. KAYITLI MI KONTROL EDEN STREAM ---
+  Stream<bool> _isSavedStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return Stream.value(false);
+    
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('saved_blogs')
+        .doc(post.id)
+        .snapshots()
+        .map((snapshot) => snapshot.exists);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return GestureDetector( // Tüm alanı tıklanabilir yapmak için GestureDetector ekledik
+    return GestureDetector(
       onTap: () {
-        // Tıklandığında detay sayfasına geçiş yapar
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -36,7 +78,10 @@ class RecentBlogTile extends StatelessWidget {
                 post.imageUrl, 
                 width: 85, 
                 height: 85, 
-                fit: BoxFit.cover
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 85, height: 85, color: Colors.grey[300], child: const Icon(Icons.image_not_supported),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -46,8 +91,11 @@ class RecentBlogTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    post.category, 
-                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary)
+                    post.category.toUpperCase(), 
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    )
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -64,12 +112,21 @@ class RecentBlogTile extends StatelessWidget {
                 ],
               ),
             ),
-            // Kaydet Butonu
-            IconButton(
-              onPressed: () {
-                // Buraya ileride favorilere ekleme mantığı gelebilir
-              }, 
-              icon: const Icon(Icons.bookmark_border, size: 22)
+            
+            // --- 3. AKILLI KAYDET BUTONU ---
+            StreamBuilder<bool>(
+              stream: _isSavedStream(),
+              builder: (context, snapshot) {
+                final isSaved = snapshot.data ?? false;
+                return IconButton(
+                  onPressed: () => _toggleSave(context, isSaved), 
+                  icon: Icon(
+                    isSaved ? Icons.bookmark : Icons.bookmark_border, 
+                    color: isSaved ? theme.colorScheme.primary : theme.hintColor,
+                    size: 24,
+                  )
+                );
+              }
             ),
           ],
         ),

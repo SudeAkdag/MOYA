@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:moya/data/models/calendar_event_model.dart';
-import 'package:moya/data/services/calendar_service.dart'; // Varsayılan olarak kalacak
+import 'package:moya/data/services/calendar_service.dart';
 import 'package:moya/presentation/screens/calendar/horizontal_calendar.dart';
 import 'package:moya/presentation/screens/calendar/daily_note_screen.dart';
-import 'package:fl_chart/fl_chart.dart'; // FlChart için gerekli
+import 'package:fl_chart/fl_chart.dart';
 
 class CalendarScreen extends StatefulWidget {
-  // HATAYI DÜZELTEN KISIM: Parametre tanımı widget seviyesine alındı
+  // --- Değişiklik: Parametre eklendi ---
   final VoidCallback onMenuTap;
 
   const CalendarScreen({super.key, required this.onMenuTap});
@@ -45,21 +45,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      // --- SIDE BAR BUTONU EKLENDİ ---
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
+        // --- Değişiklik: Menü Butonu MainWrapper'ı tetikleyecek şekilde ayarlandı ---
         leading: IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
-          onPressed: widget.onMenuTap, // MainWrapper'daki drawer'ı açar
+          onPressed: widget.onMenuTap, 
         ),
         title: Text(
           'Takvim',
           style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
-      extendBodyBehindAppBar: true, // İçeriğin buton arkasına geçmesi için
+      extendBodyBehindAppBar: true, 
       body: SafeArea(
         bottom: false, 
         child: StreamBuilder<List<CalendarEventModel>>(
@@ -84,7 +84,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 SliverAppBar(
                   backgroundColor: theme.colorScheme.surface.withOpacity(0.9),
                   pinned: true,
-                  // --- BAŞLIKLARI AŞAĞI ÇEKMEK İÇİN YÜKSEKLİK ARTIRILDI ---
                   expandedHeight: 180, 
                   elevation: 0,
                   automaticallyImplyLeading: false, 
@@ -131,7 +130,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  // --- BURADAN AŞAĞISINA DOKUNULMADI, ORİJİNAL KODUN DEVAM EDİYOR ---
+  // --- Senin Orijinal Metotların (Tam Liste) ---
 
   Widget _buildMonthSelector(ThemeData theme) {
     return Padding(
@@ -183,7 +182,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return moodByWeekday.map((key, value) => MapEntry(key, value.reduce((a, b) => a + b) / value.length));
   }
-
 
   LineChartData _moodChartData(ThemeData theme, Map<int, double> weeklyMoods) {
     List<FlSpot> spots = weeklyMoods.entries.map((entry) {
