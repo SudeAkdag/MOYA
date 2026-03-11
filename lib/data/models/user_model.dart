@@ -17,6 +17,20 @@ class UserModel {
     required this.focusAreas,
   });
 
+  // Hatanın çözümü tam olarak burada:
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      fullName: map['name'] ?? '',
+      username: map['username'] ?? '',
+      email: map['email'] ?? '',
+      phoneNumber: map['phone'] ?? '',
+      birthDate: map['bday'] ?? '',
+      gender: map['gender'] ?? '',
+      // List<dynamic>'i List<String>'e güvenli bir şekilde çeviriyoruz
+      focusAreas: List<String>.from(map['focusAreas'] ?? []),
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'name': fullName,
