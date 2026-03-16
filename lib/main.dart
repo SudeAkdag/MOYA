@@ -1,50 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:moya/data/services/settings_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moya/core/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
 import 'core/theme/bloc/theme_bloc.dart';
+import 'core/theme/bloc/theme_event.dart'; // ChangeTheme eventi için gerekli
 import 'core/theme/bloc/theme_state.dart';
 import 'presentation/screens/auth/login/login_screen.dart';
 import 'data/models/login_view_model.dart';
 import 'presentation/screens/main_wrapper.dart';
 import 'package:moya/injection_container.dart' as di;
+ // Yazdığımız servisi ekle
 
-// 🔑 GLOBAL NAVIGATOR KEY
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  // Flutter'ın widget sistemini hazırla
   WidgetsFlutterBinding.ensureInitialized();
-  di.init();
-
-  // Firebase'i bu satırla ayağa kaldırıyoruz!
+  
+  // 1. Firebase ve Injection Initialize
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  di.init();
 
-
-
+  // 2. Giriş kontrolü
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  // 3. Tema ayarını Firebase'den çek
+  AppThemeType initialTheme = AppThemeType.ocean; // Varsayılan
+  if (isLoggedIn) {
+    try {
+      final settingsService = SettingsService();
+      final settings = await settingsService.getUserSettings();
+      if (settings != null && settings['theme_type'] != null) {
+        // Firebase'deki string'i Enum tipine çeviriyoruz
+        initialTheme = AppThemeType.values.firstWhere(
+          (e) => e.name == settings['theme_type'],
+          orElse: () => AppThemeType.ocean,
+        );
+      }
+    } catch (e) {
+      debugPrint("Başlangıç teması yüklenemedi: $e");
+    }
+  }
+
+  runApp(MyApp(isLoggedIn: isLoggedIn, initialTheme: initialTheme));
 }
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
-  const MyApp({super.key, required this.isLoggedIn});
+  final AppThemeType initialTheme;
+
+  const MyApp({super.key, required this.isLoggedIn, required this.initialTheme});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
-        BlocProvider(create: (context) => ThemeBloc()),
+        // 4. Bloc'u başlangıç temasıyla tetikleyerek oluştur
+        BlocProvider(
+          create: (context) => ThemeBloc()..add(ChangeTheme(initialTheme)),
+        ),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
