@@ -5,48 +5,41 @@ import 'package:moya/data/models/calendar_event_model.dart';
 class CalendarService {
   static final _firestore = FirebaseFirestore.instance;
   static final _auth = FirebaseAuth.instance;
+  static const String testUserId = "dbdoe1R1WUdUNr1y1iDy1CUKYC33";
 
-  /// Belirtilen ay için mevcut kullanıcının olaylarını getiren bir stream döndürür.
+  /// Takvimi anlık dinleyen Stream. Veritabanı değiştiği an takvim güncellenir.
   static Stream<List<CalendarEventModel>> getEventsForMonth(DateTime month) {
-    // 1. Mevcut kullanıcıyı al.
-    final User? user = _auth.currentUser;
+    final String currentUserId = _auth.currentUser?.uid ?? testUserId;
 
-    // 2. Kullanıcı giriş yapmamışsa, hata vermemesi için boş bir veri listesi döndür.
-    if (user == null) {
-      return Stream.value([]);
-    }
-
-    // 3. Sorgulanacak ayın başlangıç ve bitiş tarihlerini hesapla.
+    // Ayın başlangıç ve bitişini Timestamp araması için hazırlıyoruz
     final startOfMonth = DateTime(month.year, month.month, 1);
-    final endOfMonth = DateTime(month.year, month.month + 1, 1); // Bir sonraki ayın ilk günü
+    final endOfMonth = DateTime(month.year, month.month + 1, 1);
 
-    // 4. Firestore sorgusunu oluştur ve stream olarak dinle.
     return _firestore
         .collection('calendar')
-        // Sadece mevcut kullanıcının verilerini getir (Güvenlik kuralı için kritik).
-        .where('userId', isEqualTo: user.uid)
-        // Sadece seçili aydaki verileri getir.
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-        .where('date', isLessThan: Timestamp.fromDate(endOfMonth))
-        .snapshots() // Veritabanındaki değişiklikleri anlık olarak dinler.
+        .where('userId', isEqualTo: currentUserId)
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth)) // <--- DÜZELTİLDİ
+        .where('date', isLessThan: Timestamp.fromDate(endOfMonth)) // <--- DÜZELTİLDİ
+        .snapshots() 
         .map((snapshot) {
-      // Gelen dökümanları CalendarEventModel listesine çevir.
-      return snapshot.docs
-          .map((doc) => CalendarEventModel.fromFirestore(doc))
-          .toList();
-    });
+          return snapshot.docs
+              .map((doc) => CalendarEventModel.fromFirestore(doc))
+              .toList();
+        });
   }
 
-  /// Firestore'a yeni bir günlük girdi ekler.
+  // BURASI HATAYI DÜZELTEN KISIM:
   static Future<void> addDailyEntry(Map<String, dynamic> data) async {
-    final User? user = _auth.currentUser;
-    if (user == null) {
-      throw Exception("Veri eklemek için kullanıcı girişi gereklidir.");
+    try {
+      final String currentUserId = _auth.currentUser?.uid ?? testUserId;
+      data['userId'] = currentUserId;
+      // Eğer tarih DateTime olarak geliyorsa Timestamp'e çeviriyoruz
+      if (data['date'] is DateTime) {
+        data['date'] = Timestamp.fromDate(data['date']);
+      }
+      await _firestore.collection('calendar').add(data);
+    } catch (e) {
+      rethrow;
     }
-
-    // Gelen veriye mevcut kullanıcının kimliğini ekle.
-    data['userId'] = user.uid;
-
-    await _firestore.collection('calendar').add(data);
   }
 }

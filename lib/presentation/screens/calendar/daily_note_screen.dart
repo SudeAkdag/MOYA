@@ -25,12 +25,15 @@ class _DailyNoteScreenState extends State<DailyNoteScreen> {
     });
 
     try {
+      // Senin orijinal kodundaki gibi Map olarak veriyi hazırlıyoruz
       final data = {
         'date': Timestamp.fromDate(widget.selectedDate),
         'mood': _moodValue,
         'energy': _energyValue,
         'note': _noteController.text,
       };
+
+      // Servisteki doğru fonksiyonumuzu çağırıyoruz
       await CalendarService.addDailyEntry(data);
 
       if (mounted) {

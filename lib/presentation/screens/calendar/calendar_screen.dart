@@ -7,7 +7,6 @@ import 'package:moya/presentation/screens/calendar/daily_note_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class CalendarScreen extends StatefulWidget {
-  // --- Değişiklik: Parametre eklendi ---
   final VoidCallback onMenuTap;
 
   const CalendarScreen({super.key, required this.onMenuTap});
@@ -52,17 +51,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
         // --- Değişiklik: Menü Butonu MainWrapper'ı tetikleyecek şekilde ayarlandı ---
         leading: IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
-          onPressed: widget.onMenuTap, 
-        ),
-        title: Text(
-          'Takvim',
-          style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
+          onPressed: widget.onMenuTap,
         ),
       ),
-      extendBodyBehindAppBar: true, 
+      extendBodyBehindAppBar: true,
       body: SafeArea(
-        bottom: false, 
+        bottom: false,
         child: StreamBuilder<List<CalendarEventModel>>(
+          // ANLIK VERİ AKIŞI: Veritabanı değiştiği an snapshot yenilenir
           stream: CalendarService.getEventsForMonth(_focusedDay),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -78,15 +74,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             final events = snapshot.data ?? [];
             final weeklyMoods = _calculateWeeklyMoods(events, _selectedDay);
+            // YENİ: Baskın duyguyu hesapla
+            final dominantMoodData = _calculateDominantMood(events, _selectedDay); 
 
             return CustomScrollView(
               slivers: [
                 SliverAppBar(
                   backgroundColor: theme.colorScheme.surface.withOpacity(0.9),
                   pinned: true,
-                  expandedHeight: 180, 
+                  expandedHeight: 180,
                   elevation: 0,
-                  automaticallyImplyLeading: false, 
+                  automaticallyImplyLeading: false,
                   title: const SizedBox.shrink(),
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
@@ -99,6 +97,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         children: [
                           _buildMonthSelector(theme),
                           const SizedBox(height: 12),
+                          // Takvime çekilen tüm event listesini gönderiyoruz
                           HorizontalCalendar(
                             focusedDay: _focusedDay,
                             selectedDay: _selectedDay,
@@ -116,9 +115,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   delegate: SliverChildListDelegate(
                     [
                       _buildWeeklyMoodSection(theme, weeklyMoods),
-                      _buildStatisticsSection(theme),
+                      _buildStatisticsSection(theme, dominantMoodData), // YENİ: Veriyi gönderdik
                       _buildDailyNoteButton(theme),
-                      const SizedBox(height: 100), 
+                      const SizedBox(height: 100),
                     ],
                   ),
                 )
@@ -129,8 +128,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
   }
-
-  // --- Senin Orijinal Metotların (Tam Liste) ---
 
   Widget _buildMonthSelector(ThemeData theme) {
     return Padding(
@@ -183,6 +180,47 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return moodByWeekday.map((key, value) => MapEntry(key, value.reduce((a, b) => a + b) / value.length));
   }
 
+  // --- YENİ: SON 7 GÜNÜN EN BASKIN DUYGUSUNU BULAN FONKSİYON ---
+  Map<String, dynamic> _calculateDominantMood(List<CalendarEventModel> events, DateTime selectedDay) {
+    final sevenDaysAgo = selectedDay.subtract(const Duration(days: 7));
+    
+    final recentEvents = events.where((e) {
+      final eventDate = DateUtils.dateOnly(e.date);
+      return eventDate.isAfter(sevenDaysAgo) && 
+             (eventDate.isBefore(selectedDay) || eventDate.isAtSameMomentAs(selectedDay)) && 
+             e.moodText != null;
+    }).toList();
+
+    if (recentEvents.isEmpty) {
+      return {'text': 'Belirsiz', 'count': 0, 'emoji': '😶'};
+    }
+
+    final Map<String, int> moodCounts = {};
+    final Map<String, String> moodEmojis = {};
+
+    for (var event in recentEvents) {
+      final text = event.moodText!;
+      moodCounts[text] = (moodCounts[text] ?? 0) + 1;
+      if (event.emoji != null) moodEmojis[text] = event.emoji!;
+    }
+
+    String dominantMood = '';
+    int maxCount = 0;
+
+    moodCounts.forEach((key, value) {
+      if (value > maxCount) {
+        maxCount = value;
+        dominantMood = key;
+      }
+    });
+
+    return {
+      'text': dominantMood,
+      'count': maxCount,
+      'emoji': moodEmojis[dominantMood] ?? '✨',
+    };
+  }
+
   LineChartData _moodChartData(ThemeData theme, Map<int, double> weeklyMoods) {
     List<FlSpot> spots = weeklyMoods.entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value);
@@ -193,12 +231,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final isSelectedDayInChart = spots.any((s) => s.x.toInt() == _selectedDay.weekday);
 
     return LineChartData(
-      gridData: FlGridData(
+      gridData: const FlGridData(
         show: true,
-        getDrawingHorizontalLine: (value) { 
-          return const FlLine(color: Colors.white10, strokeWidth: 0.5);
-        },
-        drawVerticalLine: false, 
+        drawVerticalLine: false,
       ),
       titlesData: FlTitlesData(
         show: true,
@@ -208,7 +243,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 30,
-            interval: 1, 
+            interval: 1,
             getTitlesWidget: (double value, TitleMeta meta) {
               final isSelected = value.toInt() == _selectedDay.weekday;
               final style = TextStyle(
@@ -233,9 +268,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
             },
           ),
         ),
-        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)), 
+        leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
-      borderData: FlBorderData(show: false), 
+      borderData: FlBorderData(show: false),
       minX: 1,
       maxX: 7,
       minY: 1,
@@ -245,7 +280,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           spots: spots,
           isCurved: true,
           color: theme.colorScheme.primary,
-          barWidth: 3, 
+          barWidth: 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
             show: true,
@@ -317,7 +352,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   children: [
                     Icon(Icons.trending_up, color: theme.colorScheme.primary, size: 16),
                     const SizedBox(width: 4),
-                    Text('+12%', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                    const Text('+12%', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                   ],
                 ),
               )
@@ -366,7 +401,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildStatisticsSection(ThemeData theme) {
+  // YENİ: dominantMoodData parametresi eklendi
+  Widget _buildStatisticsSection(ThemeData theme, Map<String, dynamic> dominantMoodData) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Column(
@@ -374,7 +410,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         children: [
           Text('İstatistiklerim', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          _buildDominantEmotionCard(theme),
+          _buildDominantEmotionCard(theme, dominantMoodData), // Veriyi karta pasladık
           const SizedBox(height: 12),
           Row(
             children: [
@@ -388,7 +424,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildDominantEmotionCard(ThemeData theme) {
+  // YENİ: Kart artık dinamik verilerle doluyor
+  Widget _buildDominantEmotionCard(ThemeData theme, Map<String, dynamic> data) {
+    final String moodName = data['text'];
+    final int count = data['count'];
+    final String emoji = data['emoji'];
+
     return _GlassCard(
       padding: const EdgeInsets.all(16),
       borderRadius: const BorderRadius.all(Radius.circular(16)),
@@ -400,15 +441,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               Text('En Çok Hissettiğin Duygu', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
               const SizedBox(height: 4),
-              Text('Kaygılı', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(moodName, style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Son 7 günde 3 kez', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.4), fontSize: 12)),
+              Text(count > 0 ? 'Son 7 günde $count kez' : 'Henüz kayıt yok', 
+                  style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.4), fontSize: 12)),
             ],
           ),
           CircleAvatar(
             radius: 24,
-            backgroundColor: theme.colorScheme.primary,
-            child: const Icon(Icons.sentiment_dissatisfied_outlined, color: Colors.white, size: 28),
+            backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
+            child: Text(emoji, style: const TextStyle(fontSize: 24)), // Ekrana emojiyi basıyoruz
           )
         ],
       ),
@@ -517,7 +559,7 @@ class _GlassCard extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: theme.colorScheme.onSurface.withOpacity(0.08),
-        borderRadius: borderRadius ?? BorderRadius.circular(24), 
+        borderRadius: borderRadius ?? BorderRadius.circular(24),
         border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1)),
       ),
       child: child,

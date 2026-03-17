@@ -1,88 +1,134 @@
 import 'package:flutter/material.dart';
+import 'package:moya/data/services/database_service.dart';
 
-class MoodSelector extends StatefulWidget {
-  final Function(int) onMoodSelected;
-
-  const MoodSelector({super.key, required this.onMoodSelected});
+class HomeMoodSelector extends StatefulWidget {
+  const HomeMoodSelector({super.key});
 
   @override
-  State<MoodSelector> createState() => _MoodSelectorState();
+  State<HomeMoodSelector> createState() => _HomeMoodSelectorState();
 }
 
-class _MoodSelectorState extends State<MoodSelector> {
-  int _selectedIndex = -1;
+class _HomeMoodSelectorState extends State<HomeMoodSelector> {
+  String _selectedMood = '';
+  bool _isSaving = false; // Art arda basılmayı engellemek için eklendi
 
-  // Mood renklerini sabit tutuyoruz çünkü bunlar duyguları temsil eder.
-  // Ancak AppColors sildiğimiz için buraya doğrudan renkleri veya yeni sabitleri ekliyoruz.
-  final List<Map<String, dynamic>> _moods = const [
-    {'icon': Icons.sentiment_very_dissatisfied, 'label': 'Kötü', 'color': Color.fromARGB(255, 82, 54, 54)},
-    {'icon': Icons.sentiment_dissatisfied, 'label': 'Gergin', 'color': Colors.orangeAccent},
-    {'icon': Icons.sentiment_neutral, 'label': 'Nötr', 'color': Color(0xFFFFCA28)},
-    {'icon': Icons.sentiment_satisfied, 'label': 'İyi', 'color': Colors.lightGreen},
-    {'icon': Icons.sentiment_very_satisfied, 'label': 'Harika', 'color': Color(0xFF66BB6A)},
+  final List<Map<String, dynamic>> _moods = [
+    {'emoji': '😔', 'text': 'Tükenmiş', 'color': Colors.indigo, 'value': 2.0},
+    {'emoji': '✨', 'text': 'Umutlu', 'color': Colors.yellow, 'value': 8.0},
+    {'emoji': '😰', 'text': 'Kaygılı', 'color': Colors.purple, 'value': 4.0},
+    {'emoji': '⚖️', 'text': 'Dengede', 'color': Colors.teal, 'value': 6.0},
+    {'emoji': '😄', 'text': 'Mutlu', 'color': Colors.orange, 'value': 10.0},
+    {'emoji': '😠', 'text': 'Kızgın', 'color': Colors.red, 'value': 3.0},
+    {'emoji': '😥', 'text': 'Üzgün', 'color': Colors.blue, 'value': 3.0},
   ];
 
   @override
   Widget build(BuildContext context) {
-    // 1. Temaya erişim
-    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(_moods.length, (index) {
+          final mood = _moods[index];
+          final text = mood['text'] as String;
+          return Padding(
+            padding: EdgeInsets.only(right: index == _moods.length - 1 ? 0 : 12),
+            child: _MoodOption(
+              emoji: mood['emoji'] as String,
+              text: text,
+              color: mood['color'] as Color,
+              isSelected: _selectedMood == text,
+              onTap: () async {
+                if (_isSaving) return; // Kayıt işlemi sürüyorsa tıklamayı yoksay
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        // 2. Kart rengini temanın surface/card renginden alıyoruz
-        color: theme.cardTheme.color, 
-        borderRadius: BorderRadius.circular(24),
+                setState(() {
+                  _selectedMood = text;
+                  _isSaving = true;
+                });
+
+                // LİNTER HATASINA KESİN ÇÖZÜM: 
+                // Context'i 'await' kullanmadan ÖNCE güvenli bir değişkene alıyoruz
+                final messenger = ScaffoldMessenger.of(context);
+
+                // Veritabanına kaydet
+                await DatabaseService.saveDailyMood(text, mood['emoji'], mood['value']);
+                
+                if (mounted) {
+                  setState(() => _isSaving = false);
+                }
+
+                // Artık 'context' yerine 'messenger' kullandığımız için hata/uyarı vermez!
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Bugün $text hissediyorsun. Takvime işlendi! ✨'), 
+                    duration: const Duration(seconds: 1)
+                  ),
+                );
+              },
+            ),
+          );
+        }),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Bugün nasıl hissediyorsun?",
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              // Renk otomatik olarak temanın textColor'ından gelir
+    );
+  }
+}
+
+class _MoodOption extends StatelessWidget {
+  const _MoodOption({
+    required this.emoji,
+    required this.text,
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final String text;
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Material(
+      color: isSelected ? color.withAlpha(51) : theme.cardTheme.color,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 100, // Genişliği sabitledik ki düzenli dursun
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? color : theme.colorScheme.onBackground.withAlpha(15),
+              width: 1.5,
             ),
           ),
-          const SizedBox(height: 20),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(_moods.length, (index) {
-              final isSelected = _selectedIndex == index;
-              final moodColor = _moods[index]['color'] as Color;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() => _selectedIndex = index);
-                  widget.onMoodSelected(index + 1); 
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isSelected 
-                        ? moodColor.withValues(alpha: 0.2) 
-                        : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: isSelected 
-                        ? Border.all(color: moodColor, width: 2)
-                        : null,
-                  ),
-                  child: Icon(
-                    _moods[index]['icon'],
-                    // Seçili değilse temanın ikincil yazı rengini kullanıyoruz
-                    color: isSelected 
-                        ? moodColor 
-                        : theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                    size: isSelected ? 36 : 30,
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                emoji,
+                style: const TextStyle(fontSize: 32),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                text,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected 
+                      ? theme.colorScheme.onBackground 
+                      : theme.colorScheme.onBackground.withOpacity(0.6),
+                  fontSize: 12,
                 ),
-              );
-            }),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
