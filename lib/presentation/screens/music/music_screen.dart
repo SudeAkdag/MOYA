@@ -1,22 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:moya/data/models/music_model.dart';
+import 'package:moya/data/services/music_service.dart';
+import 'package:moya/data/services/audio_player_service.dart';
+import 'package:moya/injection_container.dart';
 import 'package:moya/presentation/screens/music/playlist_screen.dart';
 
-class MusicScreen extends StatelessWidget {
-  // MainWrapper'dan gelen fonksiyon: Side bar'ı açar.
+class MusicScreen extends StatefulWidget {
   final VoidCallback onMenuTap;
 
   const MusicScreen({super.key, required this.onMenuTap});
 
   @override
+  State<MusicScreen> createState() => _MusicScreenState();
+}
+    
+class _MusicScreenState extends State<MusicScreen> {
+  final MusicService musicService = sl<MusicService>();
+  final AudioPlayerService audioService = sl<AudioPlayerService>();
+
+  final cardColors = <Color>[];
+
+  late final Stream<List<MusicCategory>> _categoriesStream;
+  late final Future<List<Song>> _forYouFuture;
+  late final Stream<PlayerState> _playerStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _categoriesStream = musicService.getCategories();
+    _forYouFuture = musicService.getForYouSongs(limit: 6);
+    _playerStream = audioService.playerStateStream;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (cardColors.isEmpty) {
+      cardColors.addAll([
+        theme.colorScheme.primaryContainer,
+        theme.colorScheme.secondaryContainer,
+        theme.colorScheme.tertiaryContainer,
+        theme.colorScheme.surfaceContainerHighest,
+      ]);
+    }
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        // --- BURASI DEĞİŞTİ: onMenuTap tetikleyici eklendi ---
         leading: IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
-          onPressed: onMenuTap, // MainWrapper'daki drawer'ı açar
+          onPressed: widget.onMenuTap,
         ),
         title: Text(
           'Müzik ve Rahatlama',
@@ -48,12 +82,9 @@ class MusicScreen extends StatelessWidget {
           ),
         ),
       ),
-      // Alt barın drawer arkasında kalmaması için hiyerarşi korundu
       bottomNavigationBar: _buildPlayerBar(context),
     );
   }
-
-  // --- 400 SATIRLIK ORIJINAL TASARIMIN (DOKUNULMADI) ---
 
   Widget _buildMoodSuggestionCard(BuildContext context) {
     final theme = Theme.of(context);
@@ -121,7 +152,13 @@ class MusicScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () async {
+              final songs = await musicService.getForYouSongs(limit: 1);
+              if (songs.isNotEmpty) {
+                audioService.play(songs.first);
+                musicService.recordPlay(songs.first);
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
@@ -151,12 +188,6 @@ class MusicScreen extends StatelessWidget {
 
   Widget _buildCategoriesSection(BuildContext context) {
     final theme = Theme.of(context);
-    final cardColors = [
-      theme.colorScheme.primaryContainer,
-      theme.colorScheme.secondaryContainer,
-      theme.colorScheme.tertiaryContainer,
-      theme.colorScheme.surfaceVariant,
-    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,49 +211,62 @@ class MusicScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          children: [
-            _buildCategoryCard(
-              context: context,
-              title: 'Odaklanma & Çalışma',
-              categoryId: 'focus',
-              icon: Icons.psychology,
-              color: cardColors[0],
-              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxzVfGi5oIov2eQvEb8StrJdo4X68KxaZOHRdAN1t4bjCNYc__pmz4W4riFFHG7mXiTCBvCgrRffVVDwF217YVLJWZEFmfDcRpL5NjneJ2w0U3AlhoPKq8WFGITqnPW-iMX-_oWOn82QUF1P_GNUCwhzWu945ZkiSek8Lks9Gr3fEhrRBJRdg2q_y7oUQ_XNOdo8ZO225I9Lcq-HVId2hQ4Peoyg8r_fQc2dXO_5WYz5hGpWNrtNWXqkTOgh7772t15UdtAm8grK4',
-            ),
-            _buildCategoryCard(
-              context: context,
-              title: 'Derin Uyku',
-              categoryId: 'sleep',
-              icon: Icons.bedtime,
-              color: cardColors[1],
-              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCGqMEazLagNpa6Xj2nCSVl598WkcJGKlSUYS4yU0eGpNM8nVeN6fCTWy8tQHedOXjooNMmA5ayCmweFVmzDaeVOo4FV-8v03-kpSteCUDQQOQaQfArAeHNQDE5lQsXMfB4I--17SoT5dVmCV9ka0K1xMdtmPKch7ljSEjYwFBgIOsYCx-dFJW8cDgTZLpmRfLISN6_6KwOUHI66IhxIX17cGP1JQR-kfRcvwpNW_LDptnahxJLSFtTTJlwSnzJxbcLzj-RwnGZDw',
-            ),
-            _buildCategoryCard(
-              context: context,
-              title: 'Stres Azaltma',
-              categoryId: 'stress',
-              icon: Icons.self_improvement,
-              color: cardColors[2],
-              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHNJ-pFMDMb0Yn3N5OHYg8TsnvmXnr8geIZLNGyUdRfwADmqj1GB_OXuej5HP6YNkBiVcd_-q6YKq-EJD7wixYU9c8Y512K8CyJnj02mpWFUIg-h7Mh33Efz6YQknqtzaWcXGCc5_p4SqHWjfGW5cqdR5vMQCTwCkKHZZXnrx_ogteddg-PGLIYfv1VcJd6irRsInv4UmCUXYT479iQibPmJBkGnagB5vHU2SNvjN5m6SK_9qh8t-NXxyXE0f3b_9hoG8Lh6OnOtU',
-            ),
-            _buildCategoryCard(
-              context: context,
-              title: 'Doğa Sesleri',
-              categoryId: 'nature',
-              icon: Icons.forest,
-              color: cardColors[3],
-              imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBjNPKVc-yXpF1O7e_cIa2UqWEC4YpB-7Yh0ZjnKbQlUSMlM85GP4vi8Q57jdrMrNDVXfZCi_1VVMYa1mfMmecW6kt1sD1gzVJe1zMaG3_wKaqCpwwAFSEeA_zK4_7mSqfBdNIhhrKatEVbWYXe3F7LtwFBNaPg9lE5b3UpSLNnuIQPw7Og2CAZqd5rcgQj-NIF_udVbBcQ_fM8qLCTAkq4Exq6uD-OhnHku6L6LskKTksR0_HMcfc44c7L6cpIn5k6FpF11ycaIbM',
-            ),
-          ],
+        StreamBuilder<List<MusicCategory>>(
+          stream: _categoriesStream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('Kategori bulunamadı'));
+            }
+            final categories = snapshot.data!;
+            return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final cat = categories[index];
+                return _buildCategoryCard(
+                  context: context,
+                  title: cat.title,
+                  categoryId: cat.id,
+                  icon: _mapIcon(cat.icon),
+                  color: cardColors[index % cardColors.length],
+                  imageUrl: cat.coverUrl,
+                );
+              },
+            );
+          },
         ),
       ],
     );
+  }
+
+  IconData _mapIcon(String iconName) {
+    switch (iconName) {
+      case 'psychology':
+        return Icons.psychology;
+      case 'bedtime':
+        return Icons.bedtime;
+      case 'self_improvement':
+        return Icons.self_improvement;
+      case 'forest':
+        return Icons.forest;
+      case 'spa':
+        return Icons.spa;
+      case 'waves':
+        return Icons.waves;
+      case 'music_note':
+        return Icons.music_note;
+      default:
+        return Icons.music_note;
+    }
   }
 
   Widget _buildCategoryCard({
@@ -252,14 +296,17 @@ class MusicScreen extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              theme.colorScheme.background.withOpacity(0.4),
-              BlendMode.darken,
-            ),
-          ),
+          color: color,
+          image: imageUrl.isNotEmpty
+              ? DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    theme.colorScheme.surface.withOpacity(0.4),
+                    BlendMode.darken,
+                  ),
+                )
+              : null,
           boxShadow: [
             BoxShadow(
               color: theme.shadowColor.withOpacity(0.3),
@@ -311,31 +358,43 @@ class MusicScreen extends StatelessWidget {
           style: theme.textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 150,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildForYouCard(
-                context: context,
-                title: 'Yağmur Sesi',
-                subtitle: 'Doğa',
-                imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAr0vNUqjVKS_E92DqCxUFvTuLTJ3yMBGJiNk5Czhej2QdCJ_DZbr6941bdpmWLo2Bw74LzE29mPowBCLvImTIxR77vax7vV81xYEi5XoaVvPckIl_n6hQGZBMqXMxovnFSpPQ4_0LMtwz6xS2RnsFyXhLn3v6hVanqHbpAUBcZ5EwDyP0bq01AeoSRxrBC0xNgC-z2_fKUzV1k5lOS36Tq77ux11cG21gfOj3eCudHtp9z_cvKZWe_yqmll9Yj8okWdPcxD9wdbxw',
+        FutureBuilder<List<Song>>(
+          future: _forYouFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 150,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const SizedBox(
+                height: 150,
+                child: Center(child: Text('Henüz öneri yok')),
+              );
+            }
+            final songs = snapshot.data!;
+            return SizedBox(
+              height: 150,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: songs.length,
+                itemBuilder: (context, index) {
+                  final song = songs[index];
+                  return _buildForYouCard(
+                    context: context,
+                    title: song.title,
+                    subtitle: song.artist,
+                    imageUrl: song.coverUrl,
+                    onTap: () {
+                      audioService.play(song);
+                      musicService.recordPlay(song);
+                    },
+                  );
+                },
               ),
-              _buildForYouCard(
-                context: context,
-                title: 'Orman Yürüyüşü',
-                subtitle: 'Ambiyans',
-                imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBAgW3CflygXDd3uNG-e1Xps92Ht36GhrLwDSGeb9leA6Sw8dvTh0CUiMp-01v5DZLibGFpayLrsls73rqRnTcpMMMgL6Tbv-LHiqmzQld8h8Z3XcCQSblOZjY9NgWKEinDMyiLECxOy0ZEoPntNENtin8pnqgvRs55m0QPk0WbpmidKrRldPpvP0TnVV_IPURUFjDzrgm4CDFT_ALDHY0YGcdT5_5JmTDTxG9rC00-ZHIycRP1SyVK608K89trha8RbunskSi2TPg',
-              ),
-              _buildForYouCard(
-                context: context,
-                title: 'Okyanus',
-                subtitle: 'Rahatlama',
-                imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFNW6m799F9jL6K03HE2i7tZviPdO5owr993p6JutlyKoe61br7-cirJeKLcaPCV17-WQo1nsBHvhC1tltJ9_dK8ecmRCaIDvKD6sw0fTRm2DitQeuh99FsTBhoQTcSppl0Y-z1u0vB7-yW8ERwA63BkJXuej3OPPDXuQpiNoPsw-ov5dSi9SPVb2LlAokn8Hk94tkgJM_kqrA0bBJ-pvvEfxjrpxAhv7OXd3SxJ_PVGGJhjGqU9ClRcSpvSCVKNdSk84etSLI6s0',
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ],
     );
@@ -346,94 +405,147 @@ class MusicScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required String imageUrl,
+    VoidCallback? onTap,
   }) {
     final theme = Theme.of(context);
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 120,
+        margin: const EdgeInsets.only(right: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 96,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: theme.colorScheme.surfaceContainerHighest,
+                image: imageUrl.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.play_arrow,
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  size: 40,
+                ),
               ),
             ),
-            child: Center(
-              child: Icon(
-                Icons.play_arrow,
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
-                size: 40,
-              ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            subtitle,
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.7)),
-          ),
-        ],
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPlayerBar(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondaryContainer.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.onSecondaryContainer.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: const DecorationImage(
-                image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuCFNW6m799F9jL6K03HE2i7tZviPdO5owr993p6JutlyKoe61br7-cirJeKLcaPCV17-WQo1nsBHvhC1tltJ9_dK8ecmRCaIDvKD6sw0fTRm2DitQeuh99FsTBhoQTcSppl0Y-z1u0vB7-yW8ERwA63BkJXuej3OPPDXuQpiNoPsw-ov5dSi9SPVb2LlAokn8Hk94tkgJM_kqrA0bBJ-pvvEfxjrpxAhv7OXd3SxJ_PVGGJhjGqU9ClRcSpvSCVKNdSk84etSLI6s0'),
-                fit: BoxFit.cover,
+
+    return StreamBuilder<PlayerState>(
+      stream: _playerStream,
+      builder: (context, snapshot) {
+        final currentSong = audioService.currentSong;
+        if (currentSong == null) return const SizedBox.shrink();
+
+        final isPlaying = snapshot.data == PlayerState.playing;
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.secondaryContainer.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.onSecondaryContainer.withOpacity(0.1)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  image: currentSong.coverUrl.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(currentSong.coverUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: currentSong.coverUrl.isEmpty
+                    ? Icon(Icons.music_note, color: theme.colorScheme.onSurface)
+                    : null,
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Okyanus Dalgaları',
-                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSecondaryContainer),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      currentSong.title,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      currentSong.artist,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSecondaryContainer.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  'En son dinlenen',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSecondaryContainer.withOpacity(0.7)),
+              ),
+              IconButton(
+                icon: Icon(
+                  isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                  color: theme.colorScheme.onSecondaryContainer,
+                  size: 32,
                 ),
-              ],
-            ),
+                onPressed: () {
+                  if (isPlaying) {
+                    audioService.pause();
+                  } else {
+                    audioService.resume();
+                  }
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.stop_circle_outlined,
+                  color: theme.colorScheme.onSecondaryContainer,
+                  size: 32,
+                ),
+                onPressed: () {
+                  audioService.stop();
+                  setState(() {});
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: Icon(Icons.play_circle_fill,
-                color: theme.colorScheme.onSecondaryContainer, size: 32),
-            onPressed: () {},
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

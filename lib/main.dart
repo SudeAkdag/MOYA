@@ -18,16 +18,12 @@ import 'package:moya/injection_container.dart' as di;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  // Flutter'ın widget sistemini hazırla
   WidgetsFlutterBinding.ensureInitialized();
   di.init();
 
-  // Firebase'i bu satırla ayağa kaldırıyoruz!
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-
 
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;

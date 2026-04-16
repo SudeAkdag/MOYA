@@ -19,12 +19,14 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   late DateTime _focusedDay;
   late DateTime _selectedDay;
+  late Stream<List<CalendarEventModel>> _eventsStream;
 
   @override
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
     _selectedDay = DateTime.now();
+    _eventsStream = CalendarService.getEventsForMonth(_focusedDay);
   }
 
   void _onDaySelected(DateTime selectedDay) {
@@ -36,6 +38,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void _changeMonth(int increment) {
     setState(() {
       _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + increment, 1);
+      _eventsStream = CalendarService.getEventsForMonth(_focusedDay);
     });
   }
 
@@ -45,88 +48,58 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      // --- SIDE BAR BUTONU EKLENDİ ---
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         titleSpacing: 0,
         leading: IconButton(
           icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
-          onPressed: widget.onMenuTap, // MainWrapper'daki drawer'ı açar
+          onPressed: widget.onMenuTap,
         ),
         title: Text(
           'Takvim',
           style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
-      extendBodyBehindAppBar: true, // İçeriğin buton arkasına geçmesi için
-      body: SafeArea(
-        bottom: false, 
-        child: StreamBuilder<List<CalendarEventModel>>(
-          stream: CalendarService.getEventsForMonth(_focusedDay),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Veriler yüklenirken bir hata oluştu: ${snapshot.error}',
-                    style: TextStyle(color: theme.colorScheme.onSurface)),
-              );
-            }
+      body: StreamBuilder<List<CalendarEventModel>>(
+        stream: _eventsStream,
+        builder: (context, snapshot) {
+          final events = snapshot.data ?? [];
+          final isLoading = snapshot.connectionState == ConnectionState.waiting;
+          final weeklyMoods = _calculateWeeklyMoods(events, _selectedDay);
 
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            final events = snapshot.data ?? [];
-            final weeklyMoods = _calculateWeeklyMoods(events, _selectedDay);
-
-            return CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  backgroundColor: theme.colorScheme.surface.withOpacity(0.9),
-                  pinned: true,
-                  // --- BAŞLIKLARI AŞAĞI ÇEKMEK İÇİN YÜKSEKLİK ARTIRILDI ---
-                  expandedHeight: 180, 
-                  elevation: 0,
-                  automaticallyImplyLeading: false, 
-                  title: const SizedBox.shrink(),
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildMonthSelector(theme),
-                          const SizedBox(height: 12),
-                          HorizontalCalendar(
-                            focusedDay: _focusedDay,
-                            selectedDay: _selectedDay,
-                            onDaySelected: _onDaySelected,
-                            events: events, 
-                            theme: theme,
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                      ),
-                    ),
-                  ),
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // Ay seçici + yatay takvim
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _buildMonthSelector(theme),
                 ),
-                SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      _buildWeeklyMoodSection(theme, weeklyMoods),
-                      _buildStatisticsSection(theme),
-                      _buildDailyNoteButton(theme),
-                      const SizedBox(height: 100), 
-                    ],
+                const SizedBox(height: 12),
+                if (isLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else ...[
+                  HorizontalCalendar(
+                    focusedDay: _focusedDay,
+                    selectedDay: _selectedDay,
+                    onDaySelected: _onDaySelected,
+                    events: events,
+                    theme: theme,
                   ),
-                )
+                  const SizedBox(height: 12),
+                  _buildWeeklyMoodSection(theme, weeklyMoods),
+                  _buildStatisticsSection(theme),
+                  _buildDailyNoteButton(theme),
+                  const SizedBox(height: 100),
+                ],
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
