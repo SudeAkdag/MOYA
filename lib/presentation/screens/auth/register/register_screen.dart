@@ -26,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedGender = "Kadın";
   final List<String> _selectedAreas = [];
   final List<String> _areas = ["Stres Yönetimi", "Uyku Kalitesi", "Odaklanma", "Anksiyete", "Özgüven", "Mutluluk"];
-  File? _pickedImage;
+  File? _pickedImage; 
 
   @override
   void dispose() {
