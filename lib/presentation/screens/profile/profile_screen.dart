@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-// Gerekli Widget Importları (Dosya yolları projenize göre kontrol edin)
+// Kendi dosya yollarınla değiştirmen gerekebilir
 import 'widgets/profile_header.dart';
 import 'widgets/statistics_section.dart';
 import 'widgets/mood_history_section.dart';
@@ -18,31 +20,22 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Merkezi Veri Yönetimi
-  Map<String, dynamic> userData = {
-    'name': 'Ayşe Yılmaz',
-    'username': 'ayseyilmaz',
-    'email': 'ayse.yilmaz@moya.com',
-    'phone': '0555 555 55 55',
-    'bday': '12 Mayıs 1995',
-    'gender': 'Kadın',
-    'focusAreas': ['Odaklanma', 'Stres Yönetimi'],
-  };
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void _handleUpdate(Map<String, dynamic> newData) {
-    setState(() {
-      userData = newData;
-    });
-  }
-
-  void _showEditSheet() {
+  // Düzenleme sayfasını açan ve veriyi gönderen fonksiyon
+  void _showEditSheet(Map<String, dynamic> currentData) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => EditProfileSheet(
-        currentData: userData,
-        onSave: _handleUpdate,
+        currentData: currentData,
+        onSave: (newData) async {
+          // Firebase'e kaydetme işlemi
+          String uid = _auth.currentUser!.uid;
+          await _firestore.collection('users').doc(uid).set(newData, SetOptions(merge: true));
+        },
       ),
     );
   }
@@ -50,115 +43,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final String uid = _auth.currentUser?.uid ?? "";
+
+    if (uid.isEmpty) {
+      return const Scaffold(body: Center(child: Text("Lütfen giriş yapın.")));
+    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            // --- SABİT ÜST BAR ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-                    // MainWrapper'daki hafıza indexine (Müzik vb.) geri döner
-                    onPressed: widget.onBack, 
-                  ),
-                  const Text(
-                    'Profil',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined, color: Colors.black87),
-                    onPressed: () {
-                      // Ayarlar sayfasını açar
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+        child: StreamBuilder<DocumentSnapshot>(
+          // Firestore'dan anlık veri dinleme
+          stream: _firestore.collection('users').doc(uid).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) return const Center(child: Text("Hata oluştu"));
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
             
-            // --- KAYDIRILABİLİR İÇERİK ---
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    ProfileHeader(
-                      name: userData['name'], 
-                      onEditPressed: _showEditSheet,
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    const StatisticsSection(),
-                    const SizedBox(height: 24),
+            // Eğer veritabanında henüz bu kullanıcı yoksa varsayılan boş bir map döner
+            final userData = snapshot.data?.data() as Map<String, dynamic>? ?? {};
 
-                    _buildTaskProgressCard(theme),
-                    const SizedBox(height: 32),
-                    
-                    const MoodHistorySection(),
-                    const SizedBox(height: 32),
-                    
-                    AccountInfoCard(
-                      userData: userData, 
-                      email: userData['email'], 
-                      birthday: userData['bday'],
-                    ), 
-                    
-                    // Alt navigasyon barın (CustomBottomNavBar) içeriği kapatmaması için boşluk
-                    const SizedBox(height: 100), 
-                  ],
+            return Column(
+              children: [
+                // --- ÜST BAR ---
+                _buildTopBar(context),
+                
+                // --- KAYDIRILABİLİR İÇERİK ---
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        ProfileHeader(
+                          // Veritabanından gelen ismi kullan, yoksa "İsimsiz" yaz
+                          name: userData['name'] ?? 'İsimsiz', 
+                          onEditPressed: () => _showEditSheet(userData),
+                        ),
+                        const SizedBox(height: 32),
+                        const StatisticsSection(),
+                        const SizedBox(height: 24),
+                        const MoodHistorySection(),
+                        const SizedBox(height: 32),
+                        // Hesap bilgileri kartına veritabanı verilerini gönderiyoruz
+                        AccountInfoCard(
+                          userData: userData, 
+                          email: userData['email'] ?? '', 
+                          birthday: userData['bday'] ?? '',
+                        ), 
+                        const SizedBox(height: 100), 
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildTaskProgressCard(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
+  Widget _buildTopBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('TAMAMLANAN', style: TextStyle(fontSize: 12, color: Colors.black54, letterSpacing: 1.1)),
-              SizedBox(height: 4),
-              Text('42 Görev', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            ],
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new),
+            onPressed: widget.onBack, 
           ),
-          SizedBox(
-            width: 55,
-            height: 55,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircularProgressIndicator(
-                  value: 0.75,
-                  strokeWidth: 6,
-                  backgroundColor: Colors.white,
-                  color: theme.primaryColor,
-                ),
-                const Text('75%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              ],
-            ),
+          const Text('Profil', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+            },
           ),
         ],
       ),

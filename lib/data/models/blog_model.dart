@@ -32,4 +32,19 @@ class BlogModel {
       isFeatured: json['isFeatured'] ?? false,
     );
   }
+
+
+ Map<String, dynamic> toMap() {
+    return {
+      'baslik': title,
+      'yazar': author,
+      'kategori': category,
+      'ozet': description,
+      'icerik': content,
+      'resimUrl': imageUrl,
+      'okumaSuresi': readTime,
+      'tarih': date,
+      'isFeatured': isFeatured,
+    };
+  }
 }

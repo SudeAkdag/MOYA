@@ -19,17 +19,14 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
-  // GlobalKey: BlogScreen gibi alt sayfalardan Sidebar'ı tetiklemek için şart.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   int _currentIndex = 2; // Başlangıç ekranı: Ana Sayfa
   int _lastIndex = 2; 
 
-  // Sayfa değişim yönetimi
   void _onItemTapped(int index) {
     if (_currentIndex != index) {
       setState(() {
-        // Profil (5) veya Ayarlar (9) açıldığında eski sayfayı hatırla
         if (index == 5 || index == 9) {
           _lastIndex = _currentIndex;
         }
@@ -38,7 +35,6 @@ class _MainWrapperState extends State<MainWrapper> {
     }
   }
 
-  // Sayfa içerikleri
   Widget _buildPage(int index) {
     switch (index) {
       case 0: 
@@ -53,11 +49,14 @@ class _MainWrapperState extends State<MainWrapper> {
       case 3: 
         return CalendarScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
       case 4: 
-        // Sidebar'ı buradan tetikliyoruz
         return BlogScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
       case 5: 
         return ProfileScreen(onBack: () => setState(() => _currentIndex = _lastIndex));
-      case 6: return const RecordedScreen();
+      
+      // DÜZELTİLEN KISIM BURASI: RecordedScreen'e menü açma yetkisi verildi
+      case 6: 
+        return RecordedScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      
       case 7: return const ChatbotScreen();
       case 9: 
         return SettingsScreen(onBack: () => setState(() => _currentIndex = _lastIndex));
@@ -72,16 +71,14 @@ class _MainWrapperState extends State<MainWrapper> {
     final isWideLayout = MediaQuery.of(context).size.width > 720;
 
     return Scaffold(
-      key: _scaffoldKey, // Alt sayfalardaki menü butonlarının çalışması için
-      extendBody: true, // Alt barın içeriğin üzerine hafif binmesini sağlar (tasarımsal)
+      key: _scaffoldKey, 
+      extendBody: true, 
       
-      // 1. ADIM: Sidebar'ı buraya (Scaffold'un drawer kısmına) ekledik.
-      // Drawer burada olduğu sürece açıldığında BottomNavigationBar'ın ÜSTÜNE biner ve onu kapatır.
       drawer: isWideLayout
           ? null
           : SideMenuDrawer(onMenuTap: (index) {
               _onItemTapped(index);
-              Navigator.pop(context); // Menüden seçim yapınca sidebarı kapat
+              Navigator.pop(context); 
             }),
 
       body: Row(
@@ -94,13 +91,10 @@ class _MainWrapperState extends State<MainWrapper> {
               color: theme.dividerColor.withAlpha(100),
             ),
           ],
-          // Ana içerik alanı
           Expanded(child: _buildPage(_currentIndex)),
         ],
       ),
 
-      // 2. ADIM: Alt Navigasyon Barı
-      // Drawer açıldığında Scaffold otomatik olarak bu barın üzerine gölge (overlay) atar ve kapatır.
       bottomNavigationBar: isWideLayout 
           ? null 
           : CustomBottomNavBar(

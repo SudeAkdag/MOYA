@@ -14,8 +14,10 @@ class AccountInfoCard extends StatelessWidget {
     final theme = Theme.of(context);
     
     // Odak alanları listesini (List<String>) aralarına virgül koyarak metne dönüştürüyoruz
-    final String focusAreasText = (userData['focusAreas'] as List<String>?)?.join(', ') ?? 'Seçilmedi';
-
+   final String focusAreasText = userData['focusAreas'] != null 
+    ? List.from(userData['focusAreas']).join(', ') 
+    : 'Seçilmedi';
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

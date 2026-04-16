@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
   final VoidCallback onMenuTap;
-  final VoidCallback onProfileTap; // Profil için yeni callback
+  final VoidCallback onProfileTap;
+  final String initials; 
 
   const HomeAppBar({
     super.key, 
     required this.onMenuTap, 
-    required this.onProfileTap, // Parametrelere ekledik
+    required this.onProfileTap,
+    required this.initials, 
   });
 
   @override
@@ -21,7 +23,7 @@ class HomeAppBar extends StatelessWidget {
       floating: true,
       snap: true,
       expandedHeight: 100.0,
-      backgroundColor: theme.scaffoldBackgroundColor.withAlpha(217),
+      backgroundColor: theme.scaffoldBackgroundColor.withValues(alpha: 0.85),
       elevation: 0,
       automaticallyImplyLeading: false,
       flexibleSpace: ClipRRect(
@@ -40,7 +42,7 @@ class HomeAppBar extends StatelessWidget {
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
-                    color: theme.colorScheme.onBackground.withAlpha(230),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -49,16 +51,9 @@ class HomeAppBar extends StatelessWidget {
         ),
       ),
       leading: Center(
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: onMenuTap,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(Icons.menu, size: 30, color: theme.colorScheme.onBackground),
-            ),
-          ),
+        child: IconButton(
+          icon: Icon(Icons.menu, size: 28, color: theme.colorScheme.onSurface),
+          onPressed: onMenuTap,
         ),
       ),
       actions: [
@@ -66,7 +61,7 @@ class HomeAppBar extends StatelessWidget {
           padding: const EdgeInsets.only(right: 16.0),
           child: Center(
             child: GestureDetector(
-              onTap: onProfileTap, // Burayı onProfileTap yaptık
+              onTap: onProfileTap,
               child: Container(
                 width: 40,
                 height: 40,
@@ -86,7 +81,7 @@ class HomeAppBar extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      'SÖ',
+                      initials, // Dinamik baş harfler
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12, 

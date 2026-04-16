@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class GreetingWidget extends StatelessWidget {
-  const GreetingWidget({super.key});
+  final String name; 
+
+  const GreetingWidget({super.key, required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -13,20 +15,17 @@ class GreetingWidget extends StatelessWidget {
       children: [
         Text.rich(
           TextSpan(
-            text: 'Merhaba, ',
-            style: textTheme.headlineMedium,
-            children: [
-              TextSpan(
-                text: 'Selin',
-                style: TextStyle(fontWeight: FontWeight.bold, color: theme.primaryColor),
-              ),
-            ],
+            text: name, 
+            style: TextStyle(fontWeight: FontWeight.bold, color: theme.primaryColor, fontSize: 24),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'Şu an nasıl hissediyorsun?',
-          style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.6), fontWeight: FontWeight.w500),
+          style: textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6), 
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

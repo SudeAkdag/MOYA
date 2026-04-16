@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:moya/core/theme/app_theme.dart';
 import 'package:moya/core/theme/bloc/theme_bloc.dart';
 import 'package:moya/core/theme/bloc/theme_event.dart';
@@ -20,6 +22,51 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool isPushNotificationsEnabled = true;
+  bool isLoading = true;
+
+  // Firebase Servis Metodu: Ayarları Güncelle
+  Future<void> _updateFirebaseSettings({bool? notifications, String? themeName}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final Map<String, dynamic> updates = {};
+    if (notifications != null) updates['notifications_enabled'] = notifications;
+    if (themeName != null) updates['theme_type'] = themeName;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(updates, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint("Firebase Güncelleme Hatası: $e");
+    }
+  }
+
+  // Firebase'den Mevcut Ayarları Çek
+  Future<void> _fetchSettings() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (doc.exists && doc.data() != null) {
+          setState(() {
+            isPushNotificationsEnabled = doc.data()!['notifications_enabled'] ?? true;
+            isLoading = false;
+          });
+        }
+      } catch (e) {
+        debugPrint("Veri çekme hatası: $e");
+      }
+    }
+    setState(() => isLoading = false);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSettings();
+  }
 
   final List<AppThemeType> themeTypes = [
     AppThemeType.ocean,
@@ -40,12 +87,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Navigator.canPop sadece Navigator.push ile gelindiyse true döner.
     final bool canPop = Navigator.canPop(context);
 
     return Scaffold(
-      // Arka plan rengini artık elle yazmıyoruz, temadan çekiyoruz
-      backgroundColor: theme.colorScheme.surface, 
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -53,27 +98,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text(
           'Ayarlar',
           style: TextStyle(
-            fontWeight: FontWeight.bold, 
+            fontWeight: FontWeight.bold,
             color: theme.colorScheme.onSurface,
             fontSize: 18,
           ),
         ),
-        // SOL ÜSTTEKİ GERİ TUŞU (APPBAR)
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () {
             if (canPop) {
-              // Profil ekranından (push ile) geldiyse sayfayı kapatır.
               Navigator.pop(context);
             } else if (widget.onBack != null) {
-              // Side menu'den (MainWrapper içinde) geldiyse onBack tetiklenir.
               widget.onBack!();
             }
           },
         ),
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
       ),
-      body: SingleChildScrollView(
+      body: isLoading 
+        ? const Center(child: CircularProgressIndicator()) 
+        : SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
@@ -85,8 +129,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.notifications_none,
                   trailing: Switch(
                     value: isPushNotificationsEnabled,
-                    onChanged: (val) => setState(() => isPushNotificationsEnabled = val),
-                    activeColor: theme.colorScheme.primary, // Switch rengi temaya göre değişir
+                    onChanged: (val) {
+                      setState(() => isPushNotificationsEnabled = val);
+                      _updateFirebaseSettings(notifications: val);
+                    },
+                    activeColor: theme.colorScheme.primary,
                   ),
                 ),
               ],
@@ -103,8 +150,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailing: Switch(
                         value: isCurrentlyNight,
                         onChanged: (bool val) {
-                          context.read<ThemeBloc>().add(
-                              ChangeTheme(val ? AppThemeType.night : AppThemeType.ocean));
+                          final newTheme = val ? AppThemeType.night : AppThemeType.ocean;
+                          context.read<ThemeBloc>().add(ChangeTheme(newTheme));
+                          _updateFirebaseSettings(themeName: newTheme.name);
                         },
                         activeColor: theme.colorScheme.primary,
                       ),
@@ -127,7 +175,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             builder: (context, state) {
                               final isSelected = state.themeType == themeType;
                               return GestureDetector(
-                                onTap: () => context.read<ThemeBloc>().add(ChangeTheme(themeType)),
+                                onTap: () {
+                                  context.read<ThemeBloc>().add(ChangeTheme(themeType));
+                                  _updateFirebaseSettings(themeName: themeType.name);
+                                },
                                 child: CircleAvatar(
                                   radius: 18,
                                   backgroundColor: displayColors[index],
@@ -151,7 +202,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SettingsTile(
                   title: 'Şifre Değiştir',
                   icon: Icons.lock_outline,
-                  onTap: () {},
+                  onTap: () {
+                    // Şifre sıfırlama maili göndererek geçici çözüm sağlayabilirsin
+                    _showPasswordResetDialog(context);
+                  },
                 ),
               ],
             ),
@@ -188,21 +242,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
-      // ALTTTAKİ NAV BAR ÜZERİNDEKİ GERİ DÖNÜŞ MANTIĞI
       bottomNavigationBar: CustomBottomNavBar(
         selectedIndex: 9, 
         onItemTapped: (index) {
-          // Eğer Ayarlar (9) dışında bir şeye basılırsa
           if (index != 9) {
             if (canPop) {
-               // Profil üzerinden gelindiyse sayfayı kapat ve MainWrapper'a dön
                Navigator.pop(context);
             } else if (widget.onBack != null) {
-               // Side bar üzerinden gelindiyse direkt index değiştir
                widget.onBack!(); 
             }
           }
         },
+      ),
+    );
+  }
+
+  void _showPasswordResetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Şifre Yenileme"),
+        content: const Text("E-posta adresinize bir şifre sıfırlama bağlantısı gönderilsin mi?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+          TextButton(
+            onPressed: () async {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user?.email != null) {
+                await FirebaseAuth.instance.sendPasswordResetEmail(email: user!.email!);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sıfırlama e-postası gönderildi.')),
+                  );
+                }
+              }
+            }, 
+            child: const Text("Gönder")
+          ),
+        ],
       ),
     );
   }
