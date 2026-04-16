@@ -1,52 +1,56 @@
-import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:moya/data/models/calendar_event_model.dart';
-import 'dart:developer' as developer;
 
 class CalendarService {
   static final _firestore = FirebaseFirestore.instance;
   static final _auth = FirebaseAuth.instance;
+  static const String testUserId = "dbdoe1R1WUdUNr1y1iDy1CUKYC33";
 
-  static CollectionReference<Map<String, dynamic>>? _calendarRef() {
-    final user = _auth.currentUser;
-    if (user == null) return null;
-    return _firestore.collection('users').doc(user.uid).collection('calendar');
-  }
-
-  /// Belirtilen ay için mevcut kullanıcının olaylarını getiren bir stream döndürür.
+  /// Takvimi anlık dinleyen Stream.
   static Stream<List<CalendarEventModel>> getEventsForMonth(DateTime month) {
-    final ref = _calendarRef();
-    if (ref == null) return Stream.value([]);
-
+    final String currentUserId = _auth.currentUser?.uid ?? testUserId;
     final startOfMonth = DateTime(month.year, month.month, 1);
     final endOfMonth = DateTime(month.year, month.month + 1, 1);
 
-    return ref.snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => CalendarEventModel.fromFirestore(doc))
-          .where((event) {
-        return (event.date.isAtSameMomentAs(startOfMonth) ||
-                event.date.isAfter(startOfMonth)) &&
-            event.date.isBefore(endOfMonth);
-      }).toList();
-    }).transform(StreamTransformer<List<CalendarEventModel>,
-        List<CalendarEventModel>>.fromHandlers(
-      handleData: (data, sink) => sink.add(data),
-      handleError: (error, stackTrace, sink) {
-        developer.log("Calendar stream hatası", error: error);
-        sink.add([]);
-      },
-    ));
+    return _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('calendar')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+        .where('date', isLessThan: Timestamp.fromDate(endOfMonth))
+        .snapshots() 
+        .map((snapshot) {
+          return snapshot.docs.map((doc) => CalendarEventModel.fromFirestore(doc)).toList();
+        });
   }
 
-  /// Firestore'a yeni bir günlük girdi ekler.
+  /// Günlük Not ekranından gelen veriyi kaydeder veya günceller
   static Future<void> addDailyEntry(Map<String, dynamic> data) async {
-    final ref = _calendarRef();
-    if (ref == null) {
-      throw Exception("Veri eklemek için kullanıcı girişi gereklidir.");
-    }
+    try {
+      final String currentUserId = _auth.currentUser?.uid ?? testUserId;
+      
+      DateTime dateForId = DateTime.now();
+      if (data['date'] is DateTime) {
+        dateForId = data['date'];
+        data['date'] = Timestamp.fromDate(dateForId);
+      } else if (data['date'] is Timestamp) {
+        dateForId = (data['date'] as Timestamp).toDate();
+      }
 
-    await ref.add(data);
+      // Doküman ID'sini tarihi kullanarak oluşturuyoruz
+      final String docId = DateFormat('yyyy-MM-dd').format(dateForId);
+
+      await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .collection('calendar')
+          .doc(docId) // .add() YERİNE .doc(docId).set() KULLANIYORUZ
+          .set(data, SetOptions(merge: true)); // Üzerine yaz ama eskileri silme
+          
+    } catch (e) {
+      rethrow;
+    }
   }
 }

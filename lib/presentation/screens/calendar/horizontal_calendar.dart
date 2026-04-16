@@ -29,29 +29,33 @@ class _HorizontalCalendarState extends State<HorizontalCalendar> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    // Widget çizildikten sonra seçili güne kaydır.
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelectedDay());
   }
 
   @override
   void didUpdateWidget(covariant HorizontalCalendar oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Eğer seçili gün veya ay değiştiyse, yeni seçili güne kaydır.
     if (!DateUtils.isSameDay(widget.selectedDay, oldWidget.selectedDay) ||
         widget.focusedDay.month != oldWidget.focusedDay.month) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelectedDay());
+      _scrollToSelectedDay();
     }
   }
 
   void _scrollToSelectedDay() {
+    // Controller'ın bir view'a bağlı olduğundan emin ol (çökme önleyici)
     if (!mounted || !_scrollController.hasClients) return;
-
+    
+    // context.size null dönme ihtimaline karşı ekran genişliğini yedek olarak al
+    final screenWidth = context.size?.width ?? MediaQuery.of(context).size.width;
+    
     final dayIndex = widget.selectedDay.day - 1;
-    // Her günün genişliği (56) + margin (8) = 64
-    final viewportWidth = _scrollController.position.viewportDimension;
-    final targetOffset = (dayIndex * 64.0) - (viewportWidth / 2) + 32;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-
+    // Her bir günün genişliği (56) + marjini (8) = 64
+    final targetOffset = (dayIndex * 64.0) - (screenWidth / 2) + 32; 
+    
     _scrollController.animateTo(
-      targetOffset.clamp(0.0, maxScroll),
+      targetOffset < 0 ? 0 : targetOffset, // Negatif değere gitmesini engelle
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
     );
@@ -66,7 +70,14 @@ class _HorizontalCalendarState extends State<HorizontalCalendar> {
   @override
   Widget build(BuildContext context) {
     final daysInMonth = DateUtils.getDaysInMonth(widget.focusedDay.year, widget.focusedDay.month);
-
+    
+    // Performans İyileştirmesi: Her öğe çiziminde tüm listeyi `any` ile dönmek yerine,
+    // sadece o ay içinde verisi olan günlerin numaralarını bir Set içinde topluyoruz.
+    final Set<int> eventDays = widget.events
+        .where((e) => e.date.year == widget.focusedDay.year && e.date.month == widget.focusedDay.month)
+        .map((e) => e.date.day)
+        .toSet();
+    
     return SizedBox(
       height: 80,
       child: ListView.builder(
@@ -78,7 +89,9 @@ class _HorizontalCalendarState extends State<HorizontalCalendar> {
           final day = index + 1;
           final date = DateTime(widget.focusedDay.year, widget.focusedDay.month, day);
           final isSelected = DateUtils.isSameDay(widget.selectedDay, date);
-          final hasEvent = widget.events.any((event) => DateUtils.isSameDay(event.date, date));
+          
+          // O gün için bir kayıt var mı, Set üzerinden anında kontrol et
+          final hasEvent = eventDays.contains(day);
 
           return GestureDetector(
             onTap: () => widget.onDaySelected(date),
@@ -86,17 +99,23 @@ class _HorizontalCalendarState extends State<HorizontalCalendar> {
               width: 56,
               margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
-                color: isSelected ? widget.theme.colorScheme.primary : widget.theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                color: isSelected 
+                    ? widget.theme.colorScheme.primary 
+                    : widget.theme.colorScheme.onSurface.withOpacity(0.04),
                 borderRadius: BorderRadius.circular(14),
+                border: isSelected 
+                    ? null 
+                    // DÜZELTME: BorderSide yerine Border.all kullanıyoruz
+                    : Border.all(color: widget.theme.colorScheme.onSurface.withOpacity(0.08)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat.E('tr_TR').format(date).substring(0,1).toUpperCase(),
+                    DateFormat.E('tr_TR').format(date).substring(0,1).toUpperCase(), // "P", "S", "Ç"
                     style: TextStyle(
                       fontSize: 12,
-                      color: isSelected ? widget.theme.colorScheme.onPrimary.withOpacity(0.8) : widget.theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: isSelected ? widget.theme.colorScheme.onPrimary.withOpacity(0.9) : widget.theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -109,11 +128,12 @@ class _HorizontalCalendarState extends State<HorizontalCalendar> {
                     ),
                   ),
                   const SizedBox(height: 4),
+                  // Olay varsa gösterilecek nokta
                   Container(
                     width: 5,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: hasEvent
+                      color: hasEvent 
                           ? (isSelected ? widget.theme.colorScheme.onPrimary : widget.theme.colorScheme.primary)
                           : Colors.transparent,
                       shape: BoxShape.circle,
