@@ -1,233 +1,127 @@
 import 'package:flutter/material.dart';
+import '../../../data/models/meditation_model.dart';
+import '../../../data/services/meditation_service.dart';
+import 'category_detail_screen.dart';
+import 'widgets/meditation_detail_screen.dart';
 
 class MeditationScreenNew extends StatelessWidget {
   const MeditationScreenNew({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme; // Temadaki ana renk şeması
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0d1c2b),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
+            // 1. AppBar
             SliverAppBar(
-              backgroundColor: const Color(0xFF0d1c2b),
+              backgroundColor: theme.scaffoldBackgroundColor,
               floating: true,
               pinned: true,
               elevation: 0,
-              title: const Text(
-                "Meditasyon Keşfet",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+              centerTitle: false,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+                onPressed: () => Navigator.pop(context),
               ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        "https://lh3.googleusercontent.com/aida-public/AB6AXuC9WYDnWoESOBwjPN3V58dgX3mjimzZm5NXmNN4ruaGq6S8RKlOTEXR3Fz6Hd40UoFDsYnMSWTH7umCGCfXnTFX5VbzJX0UrhfFbpi2tw6utLvKp9TfPafMLyWa-JDKbGD_mL4neeufL1NE7bC81_IlITg8LbEBL40r47PdkDuDSZleCIGztO5FJJILeCimK1FOJI8BJDwHQTGKcPs9f1aKDQjMXhkUUB7bm34uWr-VWaL7MPXVQnIsCdkJU2YZVpSzoRpY7XceHAI0"),
-                  ),
-                ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(70.0),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: "Nasıl hissediyorsun? Bir seans ara...",
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                      filled: true,
-                      fillColor: const Color(0xFF1a2634),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
+              titleSpacing: 0,
+              title: Text(
+                "Meditasyon Keşfet",
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
+
+            // 2. Giriş ve Arama
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildTimeFilter("Tümü", true),
-                      _buildTimeFilter("5 dk", false),
-                      _buildTimeFilter("10 dk", false),
-                      _buildTimeFilter("20+ dk", false),
-                    ],
-                  ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    Text(
+                      "Zihnini dinlendir, odaklan ve enerjini tazele.",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: TextField(
+                        style: TextStyle(color: colorScheme.onSurface),
+                        decoration: InputDecoration(
+                          hintText: "Nasıl hissediyorsun? Bir seans ar...",
+                          hintStyle: TextStyle(color: colorScheme.onSurfaceVariant.withOpacity(0.7)),
+                          prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ),
               ),
             ),
-            _buildSectionHeader("Güne Başlarken", "wb_sunny"),
-            _buildMeditationsList(),
-            _buildSectionHeader("Gün Arası Mola", "self_improvement"),
-            _buildMeditationsList2(),
-             _buildSectionHeader("Akşam Gevşemesi", "spa"),
-            _buildMeditationsList3(),
-            _buildSectionHeader("Gece Uyku", "bedtime"),
-            _buildMeditationsList4(),
+
+            // 3. İçerik Bölümleri
+            _buildSectionHeader(context, "Uykuya Hazırlık"),
+            _buildDynamicHorizontalList("Uykuya Hazırlık"),
+
+            _buildSectionHeader(context, "Sabah Enerjisi"),
+            _buildDynamicVerticalList("Sabah Enerjisi"),
+
+            _buildSectionHeader(context, "Odaklanma"),
+            _buildDynamicFeaturedCard("Odaklanma"),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 50)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTimeFilter(String label, bool isActive) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: isActive,
-        onSelected: (selected) {},
-        backgroundColor: isActive ? const Color(0xFF38bdf8) : const Color(0xFF1a2634),
-        labelStyle: TextStyle(
-          color: isActive ? const Color(0xFF0d1c2b) : Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-        shape: StadiumBorder(),
-      ),
-    );
-  }
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-  SliverToBoxAdapter _buildSectionHeader(String title, String iconName) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Icon(
-                  IconData(iconName.codeUnitAt(0), fontFamily: 'MaterialIcons'),
-                  color: Colors.yellow[600],
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Text(title, 
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary, // Temanın birincil rengi (Mavi/Teal vb.)
+              )
             ),
-            const Text(
-              "Tümünü Gör",
-              style: TextStyle(color: Color(0xFF38bdf8), fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  SliverToBoxAdapter _buildMeditationsList() {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 220,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          children: [
-            _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAVy9ZxzUqrt20lQtK2UqXa3Yjv9mxXKWys_g9sUw7yW3Ly7bX6jcl4uQvfrTbOtKLl7DnKnDm32Yo2x_91KzbMudiVRMo1Bv7JTFMsU9IUr4hwg99Gy0RWx_CJ2NE0GzcB9WtsF-8ONa3Kpw4kfx9bdnUEkyQdlFLQlQjfUnPMWgcdocCzePnSXPAwWugDnT9fW2lVZ79yRrhsJaqQCaqgacd2kyVliH14KswkDHhxBB6kICDVUBSRqaJnduTWdnx9q-jm2Z64RKdB",
-              "Sabah Enerjisi",
-              "Güne pozitif ve zinde bir başlangıç yapın.",
-              "5 dk",
-              isNew: true,
-            ),
-            _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuDofUEmNaunTXhyK84O9HKiTIdUYfoALTlgolydprETqDow5GLAwdWagNuxQzAqp4IitvlAjzpemeryMBJJvV4753wvxt5c2TN6KvDFOva3soaHHC7bytYV3ltywQHes60X2M8mupfTzi8SFkFtfIwRsKe7jrDG60QEgmzaYL9ehNVJqxZjs9GkJw2OnOcphs3yoZgrUnCKjxG9XjjxSSSsV57dMAu5RSP1LgoirYujB-ilCVbbiRaszUUfx5VQUg-CCw-V_VGJaYjK",
-              "Nefes Farkındalığı",
-              "Nefesinize odaklanarak anın tadını çıkarın.",
-              "8 dk",
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-    SliverToBoxAdapter _buildMeditationsList2() {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 220,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          children: [
-            _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuCRgL_127PvrsSfh-5N_i3zmT6Oni4byBrnc2FG51InpFMpfx3tsIWcgQZQgwV8kYT3SZhuOtveLltStnL-0vspLfOiBUxw3U6L7gyWhcqJ-B2iSrYnEO_zkRjZGtGKWMHd28DdX1TIzgEwz0mUMWqNsgRjNotiFJDkXVauVanJZAZIG4VnVnm--mxVFpjmK8S5aPO_dXZPeMVeqCv9vPjJJAg85V7ef30JiIwA_SK1fcwJTJfa_xFB_KRGjy2lQKtAp7d6ESOHf36o",
-              "Sınav Öncesi Odak",
-              "Dikkatinizi toplayın ve performansınızı artırın.",
-              "10 dk",
-              isNew: true,
-            ),
-            _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuDUryanUfZlfz2_sA9sB8flWEf5j4eAendABTS7AtVNhwKhcM1TD2a8a1BEbNMDCyxd1zn7GNrdWCjlKoM8J4LJQ7vn-p8u9C89J_dVoFasT7-y_W1oVXzTqXuyuoGKmqKBYK1l1Vvog7dB_aprkCMhj3Ggv5C8ER0vDpj6cbQO3A17jGmngfPhs5zG0ipvMQwBf_b-olay6GHtw7PPptAzbIze9yB-nWHB3GgfcaJK8G3rQp3cYQhBTZI66KD2wD3J28mRSwYZ0UC9",
-              "Hızlı Yenilenme",
-              "Kısa bir mola ile zihninizi tazeleyin.",
-              "5 dk",
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-      SliverToBoxAdapter _buildMeditationsList3() {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 220,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          children: [
-            _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAIixm-knrKXufs6b2X_ocl-x7isuy0Sa79j23rY9kwgadv0MLNbraXTn-5vADlnId2FBvAAxWUTh1-990kW4gPd_oI93wIPlT5a49mx0K-mxHlfjIOLJg2NHS2FoVcIBJaoGhlXkYvsip5lJofBSnfgLmUiALkZhnR3_cg6ekZAkFSLhyrhL8v7Spslntg8o4XWXf3NZENb5g08wKWU7yrmjDwh8hye3dxY61NPDuEMTsBkzyD87VUNJ_yG1uHiFfNx0KUqI5SeI6K",
-              "Günün Stresini At",
-              "Günün yorgunluğunu geride bırakın.",
-              "15 dk",
-              isNew: true,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-        SliverToBoxAdapter _buildMeditationsList4() {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 220,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          children: [
-            _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuCWaISJuwHfLDhlgjDaIZy1Bwh6sU2kAkazOJWlJjNQi7aFDraUBJyu8e5OUNKNDTPvAABBYFJATEoUALwGEdOcpBwS-o8TmvSTxtiukKXmkKEtwvURIvhLCm1dm_cInWSrCIjXXNFURt1pnfX17ObZLLGM5ciKiqkWrowJnI0ZT3Cdd3GojpiCK01Fs37_5qqGsJDu0Hsbm8jOodxzgxM1bBlZ0fRfyUtePi1svBAZWBIrnzourIwYHMZTlRviCZxRpvTkK-deiIhL",
-              "Derin Uykuya Geçiş",
-              "Huzurlu bir uyku için rehberli meditasyon.",
-              "25 dk",
-              isNew: true,
-            ),
-               _buildMeditationCard(
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuBZuQEFqP16ern1Tgh23dF_RL76EULkKNeekrXTkNjad84d2ftiY0ZaJASRX6QL44UfN58hwF1QHLxDCMQVUIRO23MONpl0V3SRRa-3PIY4BmuCKDC7n7UKYG6i2xH5mKM2iw5w2e1d2ks994eXZbj0zWJonWvY-QxdDYvShKTb3iwf9nXPNtKFYaeb6sjr6o6Wu7_bE_JXDCbUcP9Z6U_-aHeFvvqW38AE7NvFGiFUa59oh4F1ROn1rYwOFzQafUC9cTo4I5pUB6Bn",
-              "Uyku Hikayeleri",
-              "Sakinleştirici seslerle rüyalara dalın.",
-              "30 dk",
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CategoryDetailScreen(categoryName: title)),
+                );
+              },
+              child: Text("Hepsini Gör", 
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  decoration: TextDecoration.underline,
+                )
+              ),
             ),
           ],
         ),
@@ -235,91 +129,175 @@ class MeditationScreenNew extends StatelessWidget {
     );
   }
 
-  Widget _buildMeditationCard(
-      String imageUrl, String title, String subtitle, String duration,
-      {bool isNew = false}) {
-    return Container(
-      width: 250,
-      margin: const EdgeInsets.only(right: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(
-                children: [
-                  Image.network(
-                    imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: isNew
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              "YENİ",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          )
-                        : Container(),
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.schedule,
-                              color: Colors.white, size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            duration,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 12),
+  Widget _buildDynamicHorizontalList(String category) {
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 210,
+        child: StreamBuilder<List<MeditationModel>>(
+          stream: MeditationService.getMeditationsByCategory(category),
+          builder: (context, snapshot) {
+            final theme = Theme.of(context);
+            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+            final meditations = snapshot.data!;
+            
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: meditations.length,
+              itemBuilder: (context, index) {
+                final item = meditations[index];
+                return GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MeditationDetailScreen(meditation: item))),
+                  child: Container(
+                    width: 220,
+                    margin: const EdgeInsets.only(right: 16),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.shadowColor.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                                child: Image.network(item.image, width: double.infinity, fit: BoxFit.cover),
+                              ),
+                              Positioned(left: 10, bottom: 10, child: _buildBadge(context, item.duration)),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(item.title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold), maxLines: 1),
+                                    Text(item.category, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                                  ],
+                                ),
+                              ),
+                              Icon(Icons.play_circle_outline, color: theme.colorScheme.primary),
+                            ],
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDynamicVerticalList(String category) {
+    return StreamBuilder<List<MeditationModel>>(
+      stream: MeditationService.getMeditationsByCategory(category),
+      builder: (context, snapshot) {
+        final theme = Theme.of(context);
+        if (!snapshot.hasData) return const SliverToBoxAdapter(child: SizedBox());
+        final meditations = snapshot.data!;
+        
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final item = meditations[index];
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(item.image, width: 55, height: 55, fit: BoxFit.cover),
+                  ),
+                  title: Text(item.title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  subtitle: Text("${item.duration} • ${item.category}", style: theme.textTheme.bodySmall),
+                  trailing: Icon(Icons.play_arrow_rounded, color: theme.colorScheme.primary),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MeditationDetailScreen(meditation: item))),
+                ),
+              );
+            },
+            childCount: meditations.length,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDynamicFeaturedCard(String category) {
+    return StreamBuilder<List<MeditationModel>>(
+      stream: MeditationService.getMeditationsByCategory(category),
+      builder: (context, snapshot) {
+        
+        if (!snapshot.hasData || snapshot.data!.isEmpty) return const SliverToBoxAdapter(child: SizedBox());
+        final item = snapshot.data!.first;
+        
+        return SliverToBoxAdapter(
+          child: GestureDetector(
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => MeditationDetailScreen(meditation: item))),
+            child: Container(
+              margin: const EdgeInsets.all(16),
+              height: 180,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                image: DecorationImage(image: NetworkImage(item.image), fit: BoxFit.cover),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter, end: Alignment.topCenter,
+                    colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  ),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBadge(context, "ÖNE ÇIKAN", isFeatured: true),
+                    const SizedBox(height: 8),
+                    Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(item.duration, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  ],
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(color: Colors.grey[400], fontSize: 12),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBadge(BuildContext context, String label, {bool isFeatured = false}) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isFeatured ? theme.colorScheme.primary.withOpacity(0.8) : Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label, 
+        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)
       ),
     );
   }

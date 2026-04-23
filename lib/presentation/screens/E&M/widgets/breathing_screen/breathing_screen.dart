@@ -396,61 +396,30 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
 
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
-
     final theme = Theme.of(context);
-
     return PreferredSize(
-
       preferredSize: const Size.fromHeight(60.0),
-
       child: ClipRRect(
-
         child: BackdropFilter(
-
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-
           child: AppBar(
-
             backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.85),
-
             leading: IconButton(
-
               icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onBackground),
-
               onPressed: () => Navigator.of(context).pop(),
-
             ),
-
             title: Text("Nefes Egzersizleri", style: theme.textTheme.titleLarge),
-
             centerTitle: true,
-
-            actions: [
-
-              IconButton(
-
-                icon: Icon(Icons.bar_chart, color: theme.colorScheme.onBackground, size: 28),
-
-                onPressed: () {},
-
-              ),
-
-              const SizedBox(width: 8),
-
+            // Sağ üstteki bar_chart ikonu buradan kaldırıldı
+            actions: const [
+              SizedBox(width: 48), // Başlığı tam ortada tutmak için leading ile dengeliyoruz
             ],
-
             elevation: 0,
-
           ),
-
         ),
-
       ),
-
     );
-
   }
-
 
 
   Widget _buildControls() {

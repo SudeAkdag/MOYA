@@ -52,7 +52,9 @@ dependencies:
   fl_chart: ^1.1.1
   url_launcher: ^6.3.2
   image_picker: ^1.2.1
-
+  youtube_player_flutter: ^9.1.1
+  flutter_inappwebview: ^6.0.0
+ 
 dev_dependencies:
   flutter_test:
     sdk: flutter
