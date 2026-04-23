@@ -1,5 +1,5 @@
 class UserModel {
-  final String? uid; // Bizim için gerekli, opsiyonel yaptık
+  // uid tamamen kaldırıldı
   final String fullName;
   final String username;
   final String email;
@@ -9,7 +9,6 @@ class UserModel {
   final List<String> focusAreas;
 
   UserModel({
-    this.uid,
     required this.fullName,
     required this.username,
     required this.email,
@@ -37,11 +36,9 @@ class UserModel {
   }
 
   // --- ORTAK FROM_MAP FONKSİYONU ---
-  // [String? documentId] kısmını opsiyonel yaptık. 
-  // Takım arkadaşlarının kullandığı 'phone', 'bday' gibi özel anahtarlar birebir korundu.
-  factory UserModel.fromMap(Map<String, dynamic> map, [String? documentId]) {
+  factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      uid: documentId ?? map['uid'] as String?, // Eğer gelirse documentId'yi uid yap
+      // uid okuma satırı silindi
       fullName: map['name'] ?? '',
       username: map['username'] ?? '',
       email: map['email'] ?? '',
@@ -55,7 +52,7 @@ class UserModel {
   // Takım arkadaşlarının veritabanına yazma fonksiyonu
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      // 'uid': uid, satırı tamamen silindi. Artık veritabanında "uid: null" yazmayacak.
       'name': fullName,
       'username': username,
       'email': email,

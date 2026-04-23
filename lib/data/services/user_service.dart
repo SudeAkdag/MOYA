@@ -8,6 +8,8 @@ class UserService {
   // Kullanıcıyı veritabanına kaydet
   Future<void> saveUserToFirestore(Map<String, dynamic> userData) async {
     String uid = _auth.currentUser!.uid;
+    // doc(uid) ile belge adı zaten UID oluyor. 
+    // userData içerisinde UserModel.toMap()'ten gelen veriler var (artık içinde uid yok).
     await _firestore.collection('users').doc(uid).set(userData);
   }
 
