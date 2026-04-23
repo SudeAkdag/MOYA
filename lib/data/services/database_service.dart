@@ -27,20 +27,25 @@ class DatabaseService {
   }
 
   static Future<UserModel?> getUserProfile() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return null;
+  try {
+    final user = _auth.currentUser;
+    if (user == null) return null;
 
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists && doc.data() != null) {
-        return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-      }
-      return null;
-    } catch (e) {
-      developer.log("Profil çekme hatası", error: e);
-      return null;
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    
+    if (doc.exists && doc.data() != null) {
+      // Artık doc.id (UID) parametresini sildik, 
+      // çünkü UserModel.fromMap artık sadece veritabanı haritasını (map) bekliyor.
+      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
     }
+    
+    return null;
+  } catch (e) {
+    // developer.log için import 'dart:developer' as developer; eklemeyi unutma
+    developer.log("Profil çekme hatası", error: e);
+    return null;
   }
+}
 
   static Future<String> getDailyIntention() async {
     try {
