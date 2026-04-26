@@ -5,7 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moya/data/models/user_model.dart';
-import '../../main_wrapper.dart';
+import 'package:moya/presentation/screens/onboarding/personalization_wrapper.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -86,8 +87,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // 4. ADIM: Ana sayfaya yönlendir
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
-          (route) => false,
+         MaterialPageRoute(builder: (context) => const PersonalizationWrapper(initialData: {},)), 
+  (route) => false
         );
       }
     } catch (e) {

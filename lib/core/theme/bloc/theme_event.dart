@@ -1,19 +1,9 @@
-import 'package:equatable/equatable.dart';
-import '../app_theme.dart';
+// core/theme/bloc/theme_event.dart
+import 'package:moya/core/theme/app_theme.dart';
 
-abstract class ThemeEvent extends Equatable {
-  const ThemeEvent();
+abstract class ThemeEvent {}
 
-  @override
-  List<Object> get props => [];
-}
-
-class ChangeTheme extends ThemeEvent {
-  final AppThemeType theme;
-
-  // Sadece sıralı parametre bırakıyoruz, kafa karışıklığını gideriyoruz
-  const ChangeTheme(this.theme);
-
-  @override
-  List<Object> get props => [theme];
+class ChangeThemeEvent extends ThemeEvent {
+  final AppThemeType themeType;
+  ChangeThemeEvent(this.themeType);
 }

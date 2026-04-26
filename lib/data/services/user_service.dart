@@ -5,15 +5,27 @@ class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Kullanıcıyı veritabanına kaydet
+  // Tüm kullanıcı verilerini kaydetmek/güncellemek için tek ve sağlam fonksiyon
   Future<void> saveUserToFirestore(Map<String, dynamic> userData) async {
-    String uid = _auth.currentUser!.uid;
-    // doc(uid) ile belge adı zaten UID oluyor. 
-    // userData içerisinde UserModel.toMap()'ten gelen veriler var (artık içinde uid yok).
-    await _firestore.collection('users').doc(uid).set(userData);
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        // .set(..., SetOptions(merge: true)) belgedeki eski verileri silmeden yenileri ekler
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(userData, SetOptions(merge: true));
+        print("Veritabanı kaydı başarılı: ${user.uid}");
+      } else {
+        print("Hata: Oturum açmış kullanıcı bulunamadı!");
+      }
+    } catch (e) {
+      print("Firestore Kayıt Hatası: $e");
+      rethrow; // Hatayı yukarı fırlat ki UI'da görebilelim
+    }
   }
 
-  // Kullanıcı verilerini anlık (Stream) olarak dinle
+  // Akışı dinlemek için
   Stream<DocumentSnapshot> getUserStream() {
     String uid = _auth.currentUser!.uid;
     return _firestore.collection('users').doc(uid).snapshots();

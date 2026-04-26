@@ -28,27 +28,46 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // ⭐ BUNU EKLE - InAppWebView'ı başlat
   InAppWebViewController.setWebContentsDebuggingEnabled(true);
 
   di.init();
 
+  // --- TEMA KALICILIĞI İÇİN BURASI GÜNCELLENDİ ---
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  
+  // 1. Kayıtlı tema ismini oku
+  final String? savedThemeName = prefs.getString('selected_theme');
+  
+  // 2. Kayıtlı ismi Enum tipine çevir (Bulamazsa nature yap)
+  AppThemeType initialTheme = AppThemeType.nature;
+  if (savedThemeName != null) {
+    try {
+      initialTheme = AppThemeType.values.firstWhere(
+        (e) => e.name == savedThemeName,
+      );
+    } catch (_) {
+      initialTheme = AppThemeType.nature;
+    }
+  }
 
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  // 3. Başlangıç temasını MyApp'e gönder
+  runApp(MyApp(isLoggedIn: isLoggedIn, initialTheme: initialTheme));
 }
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
-  const MyApp({super.key, required this.isLoggedIn});
+  final AppThemeType initialTheme; // Yeni eklendi
+
+  const MyApp({super.key, required this.isLoggedIn, required this.initialTheme});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
-        BlocProvider(create: (context) => ThemeBloc()),
+        // 🚀 ThemeBloc artık uygulama açılışındaki tema ile başlıyor
+        BlocProvider(create: (context) => ThemeBloc(initialTheme)),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
@@ -56,6 +75,7 @@ class MyApp extends StatelessWidget {
             navigatorKey: navigatorKey,
             title: 'MOYA',
             debugShowCheckedModeBanner: false,
+            // Bloc'taki güncel state'e göre tema belirleniyor
             theme: AppThemes.getTheme(state.themeType),
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
