@@ -1,14 +1,79 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+import '../../../data/services/azure_openai_service.dart';
+
 // Note: Colors and styles are derived from the user's HTML mockup.
 const Color primaryColor = Color(0xFF135bec);
 const Color backgroundDark = Color(0xFF101622);
 const Color glassSurface = Color.fromRGBO(30, 41, 59, 0.7);
 const Color glassBorder = Color.fromRGBO(255, 255, 255, 0.08);
 
-class ChatbotScreen extends StatelessWidget {
+class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
+
+  @override
+  State<ChatbotScreen> createState() => _ChatbotScreenState();
+}
+
+class _ChatbotScreenState extends State<ChatbotScreen> {
+  final TextEditingController _controller = TextEditingController();
+  final AzureOpenAIService _azureService = AzureOpenAIService();
+
+  final List<AiChatMessage> _messages = [];
+
+  bool _isLoading = false;
+
+  Future<void> _sendMessage() async {
+    final text = _controller.text.trim();
+
+    if (text.isEmpty || _isLoading) return;
+
+    setState(() {
+      _messages.add(
+        AiChatMessage(
+          role: 'user',
+          content: text,
+        ),
+      );
+      _controller.clear();
+      _isLoading = true;
+    });
+
+    try {
+      final answer = await _azureService.sendMessage(
+        messages: _messages,
+      );
+
+      setState(() {
+        _messages.add(
+          AiChatMessage(
+            role: 'assistant',
+            content: answer,
+          ),
+        );
+      });
+    } catch (error) {
+      setState(() {
+        _messages.add(
+          AiChatMessage(
+            role: 'assistant',
+            content: 'Bağlantı hatası oluştu:\n$error',
+          ),
+        );
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +81,13 @@ class ChatbotScreen extends StatelessWidget {
       backgroundColor: const Color(0xff0f1218),
       body: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 448), // max-w-md
-          child: const _ChatView(),
+          constraints: const BoxConstraints(maxWidth: 448),
+          child: _ChatView(
+            messages: _messages,
+            controller: _controller,
+            isLoading: _isLoading,
+            onSend: _sendMessage,
+          ),
         ),
       ),
     );
@@ -25,41 +95,89 @@ class ChatbotScreen extends StatelessWidget {
 }
 
 class _ChatView extends StatelessWidget {
-  const _ChatView();
+  final List<AiChatMessage> messages;
+  final TextEditingController controller;
+  final bool isLoading;
+  final VoidCallback onSend;
+
+  const _ChatView({
+    required this.messages,
+    required this.controller,
+    required this.isLoading,
+    required this.onSend,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Background Orbs
         Positioned(
           top: -100,
           left: -100,
-          child: _BackgroundOrb(color: primaryColor.withOpacity(0.2), size: 500),
+          child: _BackgroundOrb(
+            color: primaryColor.withOpacity(0.2),
+            size: 500,
+          ),
         ),
         Positioned(
           bottom: -150,
           right: -150,
-          child: _BackgroundOrb(color: Colors.purple.withOpacity(0.1), size: 400, animationDelay: -4),
+          child: _BackgroundOrb(
+            color: Colors.purple.withOpacity(0.1),
+            size: 400,
+            animationDelay: -4,
+          ),
         ),
         Column(
           children: [
             const _ChatHeader(),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                children: const [
-                  _Timestamp(text: 'Bugün 14:30'),
-                  SizedBox(height: 24),
-                  _UserMessage(text: 'Bugün kendimi biraz kaygılı hissediyorum, odaklanamıyorum.'),
-                  SizedBox(height: 24),
-                  _AiMessageGroup(),
-                ],
-              ),
+              child: messages.isEmpty
+                  ? ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 130),
+                      children: const [
+                        _Timestamp(text: 'Bugün'),
+                        SizedBox(height: 24),
+                        _AiMessageGroup(
+                          text:
+                              'Merhaba, ben MOYA rehberin. Beslenme, spor, motivasyon, uyku ve günlük wellness rutinin için bana yazabilirsin. 💙',
+                          showSuggestions: true,
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 130),
+                      itemCount: messages.length + (isLoading ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == messages.length && isLoading) {
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: _AiTypingBubble(),
+                          );
+                        }
+
+                        final message = messages[index];
+                        final isUser = message.role == 'user';
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: isUser
+                              ? _UserMessage(text: message.content)
+                              : _AiMessageGroup(
+                                  text: message.content,
+                                  showSuggestions: false,
+                                ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
-        const _MessageInput(),
+        _MessageInput(
+          controller: controller,
+          isLoading: isLoading,
+          onSend: onSend,
+        ),
       ],
     );
   }
@@ -118,10 +236,14 @@ class _ChatHeader extends StatelessWidget {
             child: Text(
               'MOYA Rehberin',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
-          const SizedBox(width: 48), // To balance the back button
+          const SizedBox(width: 48),
         ],
       ),
     );
@@ -130,6 +252,7 @@ class _ChatHeader extends StatelessWidget {
 
 class _Timestamp extends StatelessWidget {
   final String text;
+
   const _Timestamp({required this.text});
 
   @override
@@ -143,7 +266,11 @@ class _Timestamp extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey,
+          ),
         ),
       ),
     );
@@ -152,6 +279,7 @@ class _Timestamp extends StatelessWidget {
 
 class _UserMessage extends StatelessWidget {
   final String text;
+
   const _UserMessage({required this.text});
 
   @override
@@ -160,7 +288,9 @@ class _UserMessage extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Container(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.7,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
             color: primaryColor,
@@ -175,10 +305,17 @@ class _UserMessage extends StatelessWidget {
                 color: primaryColor.withOpacity(0.2),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
-              )
+              ),
             ],
           ),
-          child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5)),
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
         ),
       ],
     );
@@ -186,7 +323,13 @@ class _UserMessage extends StatelessWidget {
 }
 
 class _AiMessageGroup extends StatelessWidget {
-  const _AiMessageGroup();
+  final String text;
+  final bool showSuggestions;
+
+  const _AiMessageGroup({
+    required this.text,
+    this.showSuggestions = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -200,29 +343,67 @@ class _AiMessageGroup extends StatelessWidget {
             const SizedBox(width: 12),
             Flexible(
               child: _GlassContainer(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(4),
                   topRight: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
-                child: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(color: Colors.white, fontSize: 14, height: 1.5, fontFamily: 'Inter'),
-                    children: [
-                      TextSpan(text: 'Seni anlıyorum '),
-                      TextSpan(text: '@Can', style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
-                      TextSpan(text: ', biraz mola vermek sana iyi gelebilir. Yoğun dönemlerde bu hisler çok normal. 💙\n\nŞu anki ruh haline göre senin için seçtiklerim:'),
-                    ],
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    height: 1.5,
+                    fontFamily: 'Inter',
                   ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        const _SuggestionCards(),
+        if (showSuggestions) ...[
+          const SizedBox(height: 16),
+          const _SuggestionCards(),
+        ],
+      ],
+    );
+  }
+}
+
+class _AiTypingBubble extends StatelessWidget {
+  const _AiTypingBubble();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        const _AiAvatar(),
+        const SizedBox(width: 12),
+        Flexible(
+          child: _GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(16),
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(16),
+            ),
+            child: const Text(
+              'MOYA düşünüyor...',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -238,12 +419,19 @@ class _AiAvatar extends StatelessWidget {
       height: 40,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        color: primaryColor.withOpacity(0.2),
         border: Border.all(color: primaryColor.withOpacity(0.3)),
-        boxShadow: [BoxShadow(color: primaryColor.withOpacity(0.15), blurRadius: 20)],
-        image: const DecorationImage(
-          fit: BoxFit.cover,
-          image: NetworkImage("https://lh3.googleusercontent.com/aida-public/AB6AXuBIrRtltJ6UzmZOJCILa6Aj7fihkQT1NnjDW9YfpxTY1_5wm7f-j7Cver3YV-BChbDNae8a6YWur4A0ko1XTtUYSZqaxYLo_Rc5zKV3XVm1N1WVNursHHPGXIgEDupo7TVRXzZtAVTGpvF2fs-xp9ZFfazC5tPt_JVkLPiZrzBgYw-rhT0xcFvSgidkMkg05dgBrh3XTDGyLcWHnSpmECiEiyMx_GX9y7Km1jnJdhquR7XIwPynppHTSz8EEX6e1mVZOTtqGTzbST8C"),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.15),
+            blurRadius: 20,
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.auto_awesome,
+        color: Colors.white,
+        size: 22,
       ),
     );
   }
@@ -256,7 +444,7 @@ class _SuggestionCards extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.only(left: 52), // Align with message bubble
+      padding: const EdgeInsets.only(left: 52),
       clipBehavior: Clip.none,
       child: Row(
         children: const [
@@ -264,21 +452,18 @@ class _SuggestionCards extends StatelessWidget {
             title: '3 Dakikalık Nefes Molası',
             category: 'Egzersiz',
             icon: Icons.air,
-            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBglQH6KAX7oUxqrTZhNJPSMFZAUzsMJvUpJrZKZnaCLe5sjwQ6j0C3lt-TIUycyvksqmrrVVtL73XIWQRpsXp5fesrbec0XjkvKV2L4GpDOYBsaOk-OTquAS7Aa_Ci_6peGoXZBrdBStaZ9WMI7XsD4FPVHg-z2vdm_SFN9bSdv-RjX6RPBz7HfcvToYO39mQCTo-DHl2i49LhW7GOAeS5JUC5qbnz9Rc4K2bpsGLylrSuh193DrEttCgY4_XnEr7-W5_YXWK1Yb8X',
           ),
           SizedBox(width: 12),
           _SuggestionCard(
-            title: 'Sakinleştirici Piyano',
-            category: 'Playlist',
-            icon: Icons.music_note,
-            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBTQkFCLn6lJRJICcQ78ofR9yl_GfXD4MDxJf2f-oSWW-HicL0-sjSgkD3FfQQ9zzGIMor_Pi9sTF3e30AeDbqYiYqrg_e25ugL9kYbU4ohnJlO7BuoIV0HO5uH8IqSfoM55MQbWRBIWRrsOT-hsiRVJ2V1Jd4ytuEYO7kTAPS3W2W2dshXprQu86hwyj-EJwaQ42bSLyncwM9zCKMIj_hPFKYMgIO67Fy7XGrrYbGTdvtqWs6AFUKb4gzpg-ShVhc22dFvZ3Mxmlhe',
+            title: 'Sakinleştirici Rutin',
+            category: 'Wellness',
+            icon: Icons.spa,
           ),
-           SizedBox(width: 12),
+          SizedBox(width: 12),
           _SuggestionCard(
-            title: 'Sınav Kaygısı',
+            title: 'Kaygı Azaltma Notları',
             category: 'Blog',
             icon: Icons.article,
-            imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXaUgH-9QadoVrZk5hMlpVPhN5-JTnvSeB9GsjEg206YkQ8CM21dTb8MgEfqoeb0Rgps8j9f7_07klYmKxTze1S2QVPLdU5MYOyw0fvna4XoIOEBEcLzqcltqxjgNYA3FmCbuumCxTdvr9YIDesH4WQbr6_797WpiVNxQYCRB368gJWFn6tvFF3oxAb3YubpJxxi3KBIFVFas-8uJuMfgJZNAlsBbnmBbH99nMfKC97UMRj14vjpbRr-g4cg2Rw7UU6E9mmiH1ZqQV',
           ),
         ],
       ),
@@ -290,61 +475,51 @@ class _SuggestionCard extends StatelessWidget {
   final String title;
   final String category;
   final IconData icon;
-  final String imageUrl;
 
   const _SuggestionCard({
     required this.title,
     required this.category,
     required this.icon,
-    required this.imageUrl,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 260,
+      width: 230,
       child: _GlassContainer(
         padding: const EdgeInsets.all(12),
-        child: Column(
+        child: Row(
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: NetworkImage(imageUrl),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                child: Container( // Play button overlay
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.black.withOpacity(0.2)
+            _GlassContainer(
+              padding: const EdgeInsets.all(10),
+              borderRadius: BorderRadius.circular(12),
+              backgroundColor: primaryColor.withOpacity(0.18),
+              borderColor: primaryColor.withOpacity(0.25),
+              child: Icon(icon, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    child: const Center(child: Icon(Icons.play_arrow, color: Colors.white, size: 32))),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    category,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 4),
-                      Text(category, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                _GlassContainer(
-                  padding: const EdgeInsets.all(6),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Icon(icon, color: Colors.grey, size: 20),
-                ),
-              ],
-            )
           ],
         ),
       ),
@@ -353,7 +528,15 @@ class _SuggestionCard extends StatelessWidget {
 }
 
 class _MessageInput extends StatelessWidget {
-  const _MessageInput();
+  final TextEditingController controller;
+  final bool isLoading;
+  final VoidCallback onSend;
+
+  const _MessageInput({
+    required this.controller,
+    required this.isLoading,
+    required this.onSend,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -363,7 +546,10 @@ class _MessageInput extends StatelessWidget {
         padding: const EdgeInsets.all(16).copyWith(bottom: 24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [backgroundDark, backgroundDark.withOpacity(0)],
+            colors: [
+              backgroundDark,
+              backgroundDark.withOpacity(0),
+            ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
           ),
@@ -375,14 +561,17 @@ class _MessageInput extends StatelessWidget {
           borderColor: primaryColor.withOpacity(0.2),
           child: Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: TextField(
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
+                  controller: controller,
+                  enabled: !isLoading,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
                     hintText: "MOYA'ya bir şeyler yaz...",
                     hintStyle: TextStyle(color: Colors.white54),
                     border: InputBorder.none,
                   ),
+                  onSubmitted: (_) => onSend(),
                 ),
               ),
               IconButton(
@@ -391,13 +580,27 @@ class _MessageInput extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: isLoading ? null : onSend,
                 style: ElevatedButton.styleFrom(
                   shape: const CircleBorder(),
                   padding: const EdgeInsets.all(12),
                   backgroundColor: primaryColor,
+                  disabledBackgroundColor: Colors.grey,
                 ),
-                child: const Icon(Icons.send, color: Colors.white, size: 20),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.send,
+                        color: Colors.white,
+                        size: 20,
+                      ),
               ),
             ],
           ),
@@ -412,30 +615,39 @@ class _BackgroundOrb extends StatefulWidget {
   final double size;
   final double animationDelay;
 
-  const _BackgroundOrb({required this.color, required this.size, this.animationDelay = 0});
+  const _BackgroundOrb({
+    required this.color,
+    required this.size,
+    this.animationDelay = 0,
+  });
 
   @override
   State<_BackgroundOrb> createState() => _BackgroundOrbState();
 }
 
-class _BackgroundOrbState extends State<_BackgroundOrb> with SingleTickerProviderStateMixin {
+class _BackgroundOrbState extends State<_BackgroundOrb>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
     );
 
-    Future.delayed(Duration(milliseconds: (widget.animationDelay * 1000).toInt().abs()), () {
-      if(mounted) {
-         _controller.repeat(reverse: true);
-      }
-    });
+    Future.delayed(
+      Duration(milliseconds: (widget.animationDelay * 1000).toInt().abs()),
+      () {
+        if (mounted) {
+          _controller.repeat(reverse: true);
+        }
+      },
+    );
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
@@ -447,9 +659,10 @@ class _BackgroundOrbState extends State<_BackgroundOrb> with SingleTickerProvide
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        final value = _controller.value; // 0.0 to 1.0
+        final value = _controller.value;
+
         return Transform.translate(
-          offset: Offset(0, -20 * (value - 0.5).abs() * 4), // Simulates floating
+          offset: Offset(0, -20 * (value - 0.5).abs() * 4),
           child: Opacity(
             opacity: 0.3 + (value * 0.2),
             child: child,
