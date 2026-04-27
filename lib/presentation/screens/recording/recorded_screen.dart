@@ -7,21 +7,32 @@ import '../../../../data/models/blog_model.dart';
 class RecordedScreen extends StatelessWidget {
   // Nisa branch'inden gelen zorunlu (required) menu fonksiyonu
   final VoidCallback onMenuTap; 
+  final VoidCallback? onBack; // Geri butonu için
 
-  const RecordedScreen({super.key, required this.onMenuTap});
+  const RecordedScreen({
+    super.key, 
+    required this.onMenuTap,
+    this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bool canPop = Navigator.canPop(context);
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          // Menü butonu eklendi (Main'deki AppBar'da eksikse diye ekliyoruz)
           leading: IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: onMenuTap,
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            onPressed: () {
+              if (canPop) {
+                Navigator.pop(context);
+              } else if (onBack != null) {
+                onBack!();
+              }
+            },
           ),
           centerTitle: true,
           title: const Text(

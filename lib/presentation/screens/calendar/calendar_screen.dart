@@ -5,6 +5,7 @@ import 'package:moya/data/services/calendar_service.dart';
 import 'package:moya/presentation/screens/calendar/horizontal_calendar.dart';
 import 'package:moya/presentation/screens/calendar/daily_note_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:moya/presentation/widgets/profile_drawer_button.dart';
 
 class CalendarScreen extends StatefulWidget {
   final VoidCallback onMenuTap;
@@ -48,10 +49,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
-        leading: IconButton(
-          icon: Icon(Icons.menu, color: theme.colorScheme.onSurface),
-          onPressed: widget.onMenuTap,
-        ),
+        leading: ProfileDrawerButton(onPressed: widget.onMenuTap),
       ),
       extendBodyBehindAppBar: true,
       body: SafeArea(
