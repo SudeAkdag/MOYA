@@ -2,12 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../data/services/azure_openai_service.dart';
-
-// Note: Colors and styles are derived from the user's HTML mockup.
-const Color primaryColor = Color(0xFF135bec);
-const Color backgroundDark = Color(0xFF101622);
-const Color glassSurface = Color.fromRGBO(30, 41, 59, 0.7);
-const Color glassBorder = Color.fromRGBO(255, 255, 255, 0.08);
+import '../../../core/theme/app_theme.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -77,8 +72,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Arka plan rengini temadan alıyoruz
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
-      backgroundColor: const Color(0xff0f1218),
+      backgroundColor: backgroundColor,
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 448),
@@ -109,13 +107,16 @@ class _ChatView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+
     return Stack(
       children: [
+        // Dinamik Tema Renkleriyle Arka Plan Parlamaları (Orbs)
         Positioned(
           top: -100,
           left: -100,
           child: _BackgroundOrb(
-            color: primaryColor.withOpacity(0.2),
+            color: primaryColor.withOpacity(0.15),
             size: 500,
           ),
         ),
@@ -123,7 +124,8 @@ class _ChatView extends StatelessWidget {
           bottom: -150,
           right: -150,
           child: _BackgroundOrb(
-            color: Colors.purple.withOpacity(0.1),
+            // İkinci parlamayı primary color'ın biraz daha şeffaf hali yapıyoruz
+            color: primaryColor.withOpacity(0.1),
             size: 400,
             animationDelay: -4,
           ),
@@ -187,19 +189,26 @@ class _GlassContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
   final BorderRadius borderRadius;
-  final Color backgroundColor;
-  final Color borderColor;
+  final Color? customBackgroundColor;
+  final Color? customBorderColor;
 
   const _GlassContainer({
     required this.child,
     this.padding = const EdgeInsets.all(0),
     this.borderRadius = const BorderRadius.all(Radius.circular(16)),
-    this.backgroundColor = glassSurface,
-    this.borderColor = glassBorder,
+    this.customBackgroundColor,
+    this.customBorderColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Temadaki surface (kart) rengini glass efekti için şeffaflaştırıyoruz
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
+    
+    final bgColor = customBackgroundColor ?? surfaceColor.withOpacity(0.85);
+    final borderColor = customBorderColor ?? onSurfaceColor.withOpacity(0.08);
+
     return ClipRRect(
       borderRadius: borderRadius,
       child: BackdropFilter(
@@ -207,7 +216,7 @@ class _GlassContainer extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: backgroundColor,
+            color: bgColor,
             borderRadius: borderRadius,
             border: Border.all(color: borderColor),
           ),
@@ -223,27 +232,29 @@ class _ChatHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
+
     return _GlassContainer(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
       padding: const EdgeInsets.only(left: 16, right: 16, top: 40, bottom: 16),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            icon: Icon(Icons.arrow_back_ios_new, color: textColor),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
               'MOYA Rehberin',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: textColor,
               ),
             ),
           ),
-          const SizedBox(width: 48),
+          const SizedBox(width: 48), // Dengelemek için
         ],
       ),
     );
@@ -257,19 +268,21 @@ class _Timestamp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
+
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.05),
+          color: textColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(99),
         ),
         child: Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.grey,
+            color: textColor.withOpacity(0.5),
           ),
         ),
       ),
@@ -284,6 +297,12 @@ class _UserMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    // Mesaj balonu primary color, içindeki metin ise kontrast sağlaması için ayarlandı
+    final textColor = isDark ? theme.scaffoldBackgroundColor : Colors.white;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -293,7 +312,7 @@ class _UserMessage extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
-            color: primaryColor,
+            color: theme.primaryColor,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(4),
@@ -302,7 +321,7 @@ class _UserMessage extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: primaryColor.withOpacity(0.2),
+                color: theme.primaryColor.withOpacity(0.2),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -310,8 +329,8 @@ class _UserMessage extends StatelessWidget {
           ),
           child: Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textColor,
               fontSize: 14,
               height: 1.5,
             ),
@@ -333,6 +352,8 @@ class _AiMessageGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -355,11 +376,10 @@ class _AiMessageGroup extends StatelessWidget {
                 ),
                 child: Text(
                   text,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 14,
                     height: 1.5,
-                    fontFamily: 'Inter',
                   ),
                 ),
               ),
@@ -368,7 +388,7 @@ class _AiMessageGroup extends StatelessWidget {
         ),
         if (showSuggestions) ...[
           const SizedBox(height: 16),
-          const _SuggestionCards(),
+          const _SuggestionCards(), // Bu kısım 2. aşamada dinamik olacak
         ],
       ],
     );
@@ -380,6 +400,8 @@ class _AiTypingBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -394,12 +416,13 @@ class _AiTypingBubble extends StatelessWidget {
               bottomLeft: Radius.circular(16),
               bottomRight: Radius.circular(16),
             ),
-            child: const Text(
+            child: Text(
               'MOYA düşünüyor...',
               style: TextStyle(
-                color: Colors.white70,
+                color: textColor.withOpacity(0.7),
                 fontSize: 14,
                 height: 1.5,
+                fontStyle: FontStyle.italic,
               ),
             ),
           ),
@@ -414,6 +437,8 @@ class _AiAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+
     return Container(
       width: 40,
       height: 40,
@@ -428,9 +453,9 @@ class _AiAvatar extends StatelessWidget {
           ),
         ],
       ),
-      child: const Icon(
+      child: Icon(
         Icons.auto_awesome,
-        color: Colors.white,
+        color: primaryColor,
         size: 22,
       ),
     );
@@ -484,6 +509,9 @@ class _SuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
+
     return SizedBox(
       width: 230,
       child: _GlassContainer(
@@ -493,9 +521,9 @@ class _SuggestionCard extends StatelessWidget {
             _GlassContainer(
               padding: const EdgeInsets.all(10),
               borderRadius: BorderRadius.circular(12),
-              backgroundColor: primaryColor.withOpacity(0.18),
-              borderColor: primaryColor.withOpacity(0.25),
-              child: Icon(icon, color: Colors.white, size: 22),
+              customBackgroundColor: primaryColor.withOpacity(0.18),
+              customBorderColor: primaryColor.withOpacity(0.25),
+              child: Icon(icon, color: primaryColor, size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -504,16 +532,18 @@ class _SuggestionCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     category,
-                    style: const TextStyle(
-                      color: Colors.grey,
+                    style: TextStyle(
+                      color: textColor.withOpacity(0.6),
                       fontSize: 12,
                     ),
                   ),
@@ -540,15 +570,21 @@ class _MessageInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bgColor = theme.scaffoldBackgroundColor;
+    final primaryColor = theme.primaryColor;
+    final textColor = theme.colorScheme.onSurface;
+
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
         padding: const EdgeInsets.all(16).copyWith(bottom: 24),
         decoration: BoxDecoration(
+          // Mesaj yazma alanının arkasındaki yumuşak gradient geçişi
           gradient: LinearGradient(
             colors: [
-              backgroundDark,
-              backgroundDark.withOpacity(0),
+              bgColor,
+              bgColor.withOpacity(0),
             ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
@@ -557,25 +593,26 @@ class _MessageInput extends StatelessWidget {
         child: _GlassContainer(
           borderRadius: BorderRadius.circular(32),
           padding: const EdgeInsets.only(left: 20, right: 6),
-          backgroundColor: primaryColor.withOpacity(0.15),
-          borderColor: primaryColor.withOpacity(0.2),
+          // Input alanını hafif primary renkle renklendiriyoruz
+          customBackgroundColor: primaryColor.withOpacity(0.1),
+          customBorderColor: primaryColor.withOpacity(0.2),
           child: Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: controller,
                   enabled: !isLoading,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: textColor),
+                  decoration: InputDecoration(
                     hintText: "MOYA'ya bir şeyler yaz...",
-                    hintStyle: TextStyle(color: Colors.white54),
+                    hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
                     border: InputBorder.none,
                   ),
                   onSubmitted: (_) => onSend(),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.mic, color: Colors.white54),
+                icon: Icon(Icons.mic, color: textColor.withOpacity(0.5)),
                 onPressed: () {},
               ),
               const SizedBox(width: 4),
@@ -585,7 +622,8 @@ class _MessageInput extends StatelessWidget {
                   shape: const CircleBorder(),
                   padding: const EdgeInsets.all(12),
                   backgroundColor: primaryColor,
-                  disabledBackgroundColor: Colors.grey,
+                  disabledBackgroundColor: Colors.grey.withOpacity(0.5),
+                  elevation: 0,
                 ),
                 child: isLoading
                     ? const SizedBox(
