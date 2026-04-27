@@ -68,6 +68,7 @@ class _MusicScreenState extends State<MusicScreen> {
         ],
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 220),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -239,6 +240,7 @@ class _MusicScreenState extends State<MusicScreen> {
                   icon: _mapIcon(cat.icon),
                   color: cardColors[index % cardColors.length],
                   imageUrl: cat.coverUrl,
+                  coverUrl: cat.coverUrl,
                 );
               },
             );
@@ -276,73 +278,99 @@ class _MusicScreenState extends State<MusicScreen> {
     required IconData icon,
     required Color color,
     required String imageUrl,
+    required String coverUrl,
   }) {
     final theme = Theme.of(context);
     final iconColor = ThemeData.estimateBrightnessForColor(color) == Brightness.dark ? Colors.white : Colors.black;
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PlaylistScreen(
-              categoryTitle: title,
-              categoryId: categoryId,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.3),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Material(
+          color: color,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PlaylistScreen(
+                    categoryTitle: title,
+                    categoryId: categoryId,
+                    coverUrl: coverUrl,
+                  ),
+                ),
+              );
+            },
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (imageUrl.isNotEmpty)
+                  Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(color: color),
+                  ),
+                // Başlığın okunabilmesi için altta koyu gradient
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black54,
+                        Colors.black87,
+                      ],
+                      stops: [0.35, 0.7, 1.0],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.85),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: iconColor, size: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                          shadows: const [
+                            Shadow(
+                              color: Colors.black54,
+                              blurRadius: 6,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      },
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          color: color,
-          image: imageUrl.isNotEmpty
-              ? DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    theme.colorScheme.surface.withOpacity(0.4),
-                    BlendMode.darken,
-                  ),
-                )
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: theme.shadowColor.withOpacity(0.3),
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, color: iconColor, size: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -468,11 +496,18 @@ class _MusicScreenState extends State<MusicScreen> {
 
         return Container(
           padding: const EdgeInsets.all(12),
-          margin: const EdgeInsets.all(16),
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 128),
           decoration: BoxDecoration(
-            color: theme.colorScheme.secondaryContainer.withOpacity(0.8),
+            color: theme.colorScheme.secondaryContainer.withOpacity(0.95),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: theme.colorScheme.onSecondaryContainer.withOpacity(0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: theme.shadowColor.withOpacity(0.25),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             children: [

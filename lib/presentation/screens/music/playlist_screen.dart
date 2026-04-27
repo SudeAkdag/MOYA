@@ -8,11 +8,13 @@ import 'package:moya/injection_container.dart';
 class PlaylistScreen extends StatefulWidget {
   final String categoryTitle;
   final String categoryId;
+  final String coverUrl;
 
   const PlaylistScreen({
     super.key,
     required this.categoryTitle,
     required this.categoryId,
+    this.coverUrl = '',
   });
 
   @override
@@ -38,11 +40,6 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.categoryTitle),
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-      ),
       bottomNavigationBar: _buildMiniPlayer(theme),
       body: StreamBuilder<List<Song>>(
         stream: _songsStream,
@@ -51,99 +48,163 @@ class _PlaylistScreenState extends State<PlaylistScreen> {
           final isLoading =
               snapshot.connectionState == ConnectionState.waiting;
 
-          if (isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (songs.isEmpty) {
-            return const Center(child: Text('Şarkı bulunamadı.'));
-          }
-
-          return Column(
-            children: [
-              // Oynat / Karıştır butonları
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('Oynat'),
-                        onPressed: () {
-                          audioService.play(songs.first);
-                          musicService.recordPlay(songs.first);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 240,
+                pinned: true,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                iconTheme: const IconThemeData(color: Colors.white),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsetsDirectional.only(
+                    start: 56,
+                    bottom: 16,
+                  ),
+                  title: Text(
+                    widget.categoryTitle,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black54,
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (widget.coverUrl.isNotEmpty)
+                        Image.network(
+                          widget.coverUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) =>
+                              Container(color: theme.colorScheme.primary),
+                        )
+                      else
+                        Container(color: theme.colorScheme.primary),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black45,
+                              Colors.black87,
+                            ],
+                            stops: [0.4, 0.75, 1.0],
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.shuffle),
-                        label: const Text('Karıştır'),
-                        onPressed: () {
-                          final shuffled = List<Song>.from(songs)..shuffle();
-                          audioService.play(shuffled.first);
-                          musicService.recordPlay(shuffled.first);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.colorScheme.onSurface,
-                          side: BorderSide(color: theme.dividerColor),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              // Şarkı listesi
-              Expanded(
-                child: ListView.builder(
-                  itemCount: songs.length,
-                  itemBuilder: (context, index) {
-                    final song = songs[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: theme.colorScheme.primaryContainer,
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: theme.colorScheme.onPrimaryContainer,
+              if (isLoading)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (songs.isEmpty)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: Text('Şarkı bulunamadı.')),
+                )
+              else ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.play_arrow),
+                            label: const Text('Oynat'),
+                            onPressed: () {
+                              audioService.play(songs.first);
+                              musicService.recordPlay(songs.first);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      title: Text(song.title),
-                      subtitle: Text(song.artist),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            song.duration,
-                            style: theme.textTheme.bodySmall,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.shuffle),
+                            label: const Text('Karıştır'),
+                            onPressed: () {
+                              final shuffled = List<Song>.from(songs)
+                                ..shuffle();
+                              audioService.play(shuffled.first);
+                              musicService.recordPlay(shuffled.first);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.colorScheme.onSurface,
+                              side: BorderSide(color: theme.dividerColor),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
                           ),
-                          _FavoriteButton(
-                            songId: song.id,
-                            musicService: musicService,
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        audioService.play(song);
-                        musicService.recordPlay(song);
-                      },
-                    );
-                  },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final song = songs[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              theme.colorScheme.primaryContainer,
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                        title: Text(song.title),
+                        subtitle: Text(song.artist),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              song.duration,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                            _FavoriteButton(
+                              songId: song.id,
+                              musicService: musicService,
+                            ),
+                          ],
+                        ),
+                        onTap: () {
+                          audioService.play(song);
+                          musicService.recordPlay(song);
+                        },
+                      );
+                    },
+                    childCount: songs.length,
+                  ),
+                ),
+              ],
             ],
           );
         },

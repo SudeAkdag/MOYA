@@ -15,6 +15,7 @@ import 'presentation/screens/auth/login/login_screen.dart';
 import 'data/models/login_view_model.dart';
 import 'presentation/screens/main_wrapper.dart';
 import 'package:moya/injection_container.dart' as di;
+import 'data/services/seed_service.dart';
 
 // 🔑 GLOBAL NAVIGATOR KEY
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -28,13 +29,22 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // ⭐ BUNU EKLE - InAppWebView'ı başlat
-  InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  // InAppWebView'ı başlat
+  try {
+    InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  } on UnimplementedError catch (_) {
+    // Ignore on unsupported platforms
+  }
 
   di.init();
 
   final prefs = await SharedPreferences.getInstance();
   final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  // Müzik kataloğu seed'i sadece kullanıcı zaten giriş yapmışsa çalışır;
+  // ilk girişte/registerda seed login sonrası çağrılır (Firestore kuralları
+  // yazma için request.auth != null gerektirdiğinden).
+  await SeedService.runSeedIfNeeded();
 
   runApp(MyApp(isLoggedIn: isLoggedIn));
 }

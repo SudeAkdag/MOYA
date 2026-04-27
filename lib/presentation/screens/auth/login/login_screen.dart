@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Paket eklendi
 import 'widgets/auth_text_field.dart';
 import '../../../../data/models/login_view_model.dart';
+import '../../../../data/services/seed_service.dart';
 import 'widgets/login_header.dart';
 import 'widgets/login_button.dart';
 import 'widgets/login_footer.dart';
@@ -90,7 +91,10 @@ class _LoginScreenState extends State<LoginScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isLoggedIn', true);
 
-      // 2. Yönlendirme
+      // 2. Müzik kataloğunu seed'le (auth artık aktif)
+      await SeedService.runSeedIfNeeded();
+
+      // 3. Yönlendirme
       navigatorKey.currentState!.pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainWrapper()),
         (route) => false,

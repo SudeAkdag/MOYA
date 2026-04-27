@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:moya/data/models/user_model.dart';
+import 'package:moya/data/services/seed_service.dart';
 import '../../main_wrapper.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -73,17 +74,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         focusAreas: [], // Odak alanları 5 adımlı sayfalarda doldurulacak
       );
 
-      // 3. ADIM: Firestore'a kaydet 
+      // 3. ADIM: Firestore'a kaydet
       // toMap() fonksiyonu artık veritabanında 'uid: null' oluşturmayacak
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
           .set(newUser.toMap());
 
+      // 4. ADIM: Müzik kataloğunu seed'le (auth artık aktif)
+      await SeedService.runSeedIfNeeded();
+
       if (mounted) {
         Navigator.pop(context); // Yükleniyor dairesini kapat
-        
-        // 4. ADIM: Ana sayfaya yönlendir
+
+        // 5. ADIM: Ana sayfaya yönlendir
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const MainWrapper()),
