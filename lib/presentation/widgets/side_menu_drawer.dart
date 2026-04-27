@@ -1,6 +1,4 @@
-
-
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';  
 import 'package:moya/main.dart'; 
@@ -18,24 +16,29 @@ class SideMenuDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final viewModel = context.read<LoginViewModel>();
-    
-    // Aktif kullanıcının ID'sini alıyoruz
     final String uid = FirebaseAuth.instance.currentUser?.uid ?? "";
 
     return Drawer(
       backgroundColor: theme.scaffoldBackgroundColor,
       child: StreamBuilder<DocumentSnapshot>(
-        // Firestore'dan kullanıcı verisini anlık dinliyoruz
         stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
         builder: (context, snapshot) {
-          // Veri yüklenirken veya hata oluştuğunda görünecek varsayılan değerler
           String userName = "Yükleniyor...";
           String userEmail = "...";
+          String initials = "M"; // Varsayılan Baş Harf
 
           if (snapshot.hasData && snapshot.data!.exists) {
             final userData = snapshot.data!.data() as Map<String, dynamic>;
             userName = userData['name'] ?? "İsimsiz Kullanıcı";
             userEmail = userData['email'] ?? "E-posta yok";
+            
+            // İsimden baş harf oluşturma (Sude Naz -> SN)
+            if (userName != "İsimsiz Kullanıcı") {
+              List<String> nameParts = userName.trim().split(' ');
+              initials = nameParts.length >= 2 
+                ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                : userName[0].toUpperCase();
+            }
           }
 
           return ListView(
@@ -44,23 +47,29 @@ class SideMenuDrawer extends StatelessWidget {
               UserAccountsDrawerHeader(
                 decoration: BoxDecoration(color: theme.primaryColor),
                 accountName: Text(
-                  userName, // Dinamik İsim
+                  userName,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
                 accountEmail: Text(
-                  userEmail, // Dinamik E-posta
+                  userEmail,
                   style: const TextStyle(color: Colors.white70),
                 ),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: theme.scaffoldBackgroundColor,
-                  child: Icon(Icons.person, size: 40, color: theme.primaryColor),
+                  child: Text(
+                    initials,
+                    style: TextStyle(
+                      fontSize: 24, 
+                      fontWeight: FontWeight.bold, 
+                      color: theme.primaryColor
+                    ),
+                  ),
                 ),
               ),
 
-              // --- Menü Öğeleri ---
               _buildMenuItem(theme, Icons.person_outline, "Profil", () => onMenuTap(5)),
               _buildMenuItem(theme, Icons.self_improvement, "Egzersiz ve Meditasyon", () => onMenuTap(0)),
               _buildMenuItem(theme, Icons.music_note, "Müzik", () => onMenuTap(1)),
@@ -87,10 +96,14 @@ class SideMenuDrawer extends StatelessWidget {
   }
 
   void _handleLogout(BuildContext context, LoginViewModel viewModel) async {
+    // Önce Drawer'ı kapat
     Navigator.of(context).pop();
+    
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
-    await viewModel.logout();
+    await prefs.setBool('isLoggedIn', false); // Kalıcı çıkış kaydı
+    await viewModel.logout(); // Firebase ve ViewModel temizliği
+    
+    // Stack'i temizle ve Login ekranına gönder
     navigatorKey.currentState!.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,

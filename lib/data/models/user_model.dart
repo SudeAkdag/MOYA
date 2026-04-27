@@ -5,14 +5,11 @@ class UserModel {
   final String phoneNumber;
   final String birthDate;
   final String gender;
-  final List<String> focusAreas;
-  
-  // --- ONBOARDING ALANLARI (TİPLERİ GÜNCELLENDİ) ---
-  final List<String>? selectedGoals;   // List yaptık çünkü çoklu seçiyoruz
-  final String? experienceLevel; // Çoklu seçim izni verdiysen List olmalı
-  final String? dailyTime;            // Genelde tek seçim
-  final List<String>? routines;        // Çoklu seçim
-  final String? selectedTheme;         // Tek seçim
+  final List<String> selectedGoals; 
+  final String? experienceLevel;
+  final String? dailyTime;
+  final List<String>? routines;
+  final String? selectedTheme;
   final bool onboardingCompleted;
 
   UserModel({
@@ -22,8 +19,7 @@ class UserModel {
     required this.phoneNumber,
     required this.birthDate,
     required this.gender,
-    required this.focusAreas,
-    this.selectedGoals,
+    required this.selectedGoals,
     this.experienceLevel,
     this.dailyTime,
     this.routines,
@@ -31,18 +27,26 @@ class UserModel {
     this.onboardingCompleted = false,
   });
 
+  // --- EKSİK OLAN GETTERLAR BURADA ---
+
+  // Kullanıcı adını döndürür, boşsa 'Misafir' der
   String get name => fullName.isNotEmpty ? fullName : 'Misafir';
 
+  // İsim ve soyismin baş harflerini döndürür (Örn: Sude Naz -> SN)
   String get initials {
-    if (name == 'Misafir') return 'M';
+    if (name == 'Misafir' || name.isEmpty) return 'M';
+    
     List<String> names = name.split(' ').where((n) => n.isNotEmpty).toList();
+    
     if (names.length >= 2) {
-      return '${names[0][0]}${names[1][0]}'.toUpperCase();
+      return '${names[0][0]}${names[names.length - 1][0]}'.toUpperCase();
     }
-    return name.isNotEmpty ? name[0].toUpperCase() : 'M';
+    
+    return name[0].toUpperCase();
   }
 
-  // --- VERİTABANINDAN OKUMA ---
+  // ---------------------------------
+
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       fullName: map['name'] ?? '',
@@ -51,19 +55,17 @@ class UserModel {
       phoneNumber: map['phone'] ?? '',
       birthDate: map['bday'] ?? '',
       gender: map['gender'] ?? '',
-      focusAreas: List<String>.from(map['focusAreas'] ?? []),
-      
-      // Firestore'daki CamelCase isimlerle birebir eşleşmeli
-      selectedGoals: map['selectedGoals'] != null ? List<String>.from(map['selectedGoals']) : [],
+      selectedGoals: map['selectedGoals'] != null 
+          ? List<String>.from(map['selectedGoals']) 
+          : [],
       experienceLevel: map['experienceLevel'] ?? '',
-      dailyTime: map['dailyTime'],
+      dailyTime: map['dailyTime'] ?? '',
       routines: map['routines'] != null ? List<String>.from(map['routines']) : [],
-      selectedTheme: map['selectedTheme'],
+      selectedTheme: map['selectedTheme'] ?? 'nature',
       onboardingCompleted: map['onboardingCompleted'] ?? false,
     );
   }
 
-  // --- VERİTABANINA YAZMA ---
   Map<String, dynamic> toMap() {
     return {
       'name': fullName,
@@ -72,10 +74,7 @@ class UserModel {
       'phone': phoneNumber,
       'bday': birthDate,
       'gender': gender,
-      'focusAreas': focusAreas,
-      
-      // Firestore ekran görüntündeki alan isimleri
-      'primaryGoal': selectedGoals,
+      'selectedGoals': selectedGoals, 
       'experienceLevel': experienceLevel,
       'dailyTime': dailyTime,
       'routines': routines,

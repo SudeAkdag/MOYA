@@ -23,14 +23,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool isPushNotificationsEnabled = true;
   bool isLoading = true;
 
-  // Tema tipleri ve onlara karşılık gelen önizleme renkleri (AppThemes içindeki primary renkler)
+  // Tema seçenekleri ve önizleme renkleri
   final List<Map<String, dynamic>> _themeOptions = [
-    {'type': AppThemeType.ocean, 'color': const Color(0xFF0077B6)},
-    {'type': AppThemeType.nature, 'color': const Color(0xFF606C38)},
-    {'type': AppThemeType.purple, 'color': const Color(0xFF6A1B9A)},
-    {'type': AppThemeType.pink, 'color': const Color(0xFFD81B60)},
-    {'type': AppThemeType.brown, 'color': const Color(0xFF99582A)},
-    {'type': AppThemeType.night, 'color': const Color(0xFF4FC3F7)}, // Night eklendi
+    {'type': AppThemeType.nature, 'color': const Color(0xFF606C38), 'label': 'Doğa'},
+    {'type': AppThemeType.ocean, 'color': const Color(0xFF0077B6), 'label': 'Okyanus'},
+    {'type': AppThemeType.pink, 'color': const Color(0xFFD81B60), 'label': 'Bulut'},
+    {'type': AppThemeType.brown, 'color': const Color(0xFF99582A), 'label': 'Toprak'},
+    {'type': AppThemeType.purple, 'color': const Color(0xFF6A1B9A), 'label': 'Gece'},
   ];
 
   @override
@@ -114,58 +113,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
 
-                  // GÖRÜNÜM (TEMA SEÇİMİ)
+                  // GÖRÜNÜM (KARANLIK MOD VE RENK PALETİ)
                   SettingsGroup(
                     title: 'Görünüm',
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Tema Renk Paleti',
-                                style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 13)),
-                            const SizedBox(height: 16),
-                            // TEMA DAİRELERİ
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: _themeOptions.map((option) {
-                                final themeType = option['type'] as AppThemeType;
-                                final color = option['color'] as Color;
+                      BlocBuilder<ThemeBloc, ThemeState>(
+                        builder: (context, state) {
+                          bool isDark = state.themeType == AppThemeType.night;
 
-                                return BlocBuilder<ThemeBloc, ThemeState>(
-                                  builder: (context, state) {
-                                    final isSelected = state.themeType == themeType;
-                                    return GestureDetector(
-                                      onTap: () {
-                                        context.read<ThemeBloc>().add(ChangeThemeEvent(themeType));
-                                        _updateFirebaseSettings(themeName: themeType.name);
-                                      },
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: CircleAvatar(
-                                          radius: 18,
-                                          backgroundColor: color,
-                                          child: isSelected
-                                              ? const Icon(Icons.check, color: Colors.white, size: 20)
-                                              : null,
-                                        ),
-                                      ),
-                                    );
+                          return Column(
+                            children: [
+                              // Karanlık Mod Switch
+                              SettingsTile(
+                                title: 'Karanlık Mod',
+                                icon: Icons.dark_mode_outlined,
+                                trailing: Switch(
+                                  value: isDark,
+                                  onChanged: (val) {
+                                    final newTheme = val ? AppThemeType.night : AppThemeType.nature;
+                                    context.read<ThemeBloc>().add(ChangeThemeEvent(newTheme));
+                                    _updateFirebaseSettings(themeName: newTheme.name);
                                   },
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
+                                  activeColor: theme.colorScheme.primary,
+                                ),
+                              ),
+                              // Renk Paleti Seçimi (Karanlık mod kapalıyken daha görünür olur)
+                              if (!isDark)
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Tema Renk Paleti',
+                                          style: TextStyle(
+                                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                              fontSize: 13)),
+                                      const SizedBox(height: 16),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: _themeOptions.map((option) {
+                                          final type = option['type'] as AppThemeType;
+                                          final color = option['color'] as Color;
+                                          final isSelected = state.themeType == type;
+
+                                          return GestureDetector(
+                                            onTap: () {
+                                              context.read<ThemeBloc>().add(ChangeThemeEvent(type));
+                                              _updateFirebaseSettings(themeName: type.name);
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? theme.colorScheme.primary
+                                                      : Colors.transparent,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                              child: CircleAvatar(
+                                                radius: 18,
+                                                backgroundColor: color,
+                                                child: isSelected
+                                                    ? const Icon(Icons.check,
+                                                        color: Colors.white, size: 20)
+                                                    : null,
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -187,7 +211,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SettingsTile(
                         title: 'Hakkında',
                         icon: Icons.info_outline,
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen())),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AboutScreen()),
+                        ),
                       ),
                     ],
                   ),
@@ -203,7 +230,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 40),
-                  Text('MOYA v2.4.0', style: TextStyle(color: theme.colorScheme.outline, fontSize: 12)),
+                  Text('MOYA v2.4.0',
+                      style: TextStyle(color: theme.colorScheme.outline, fontSize: 12)),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -219,7 +247,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Yardımcı Dialoglar
   void _showPasswordResetDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -235,7 +262,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await FirebaseAuth.instance.sendPasswordResetEmail(email: user!.email!);
                   if (context.mounted) {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sıfırlama e-postası gönderildi.')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Sıfırlama e-postası gönderildi.')),
+                    );
                   }
                 }
               },
@@ -246,6 +275,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hesap silme özelliği yakında eklenecek.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Hesap silme özelliği yakında eklenecek.')),
+    );
   }
 }

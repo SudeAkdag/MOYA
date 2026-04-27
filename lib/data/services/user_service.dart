@@ -15,12 +15,12 @@ class UserService {
             .collection('users')
             .doc(user.uid)
             .set(userData, SetOptions(merge: true));
-        print("Veritabanı kaydı başarılı: ${user.uid}");
+       
       } else {
-        print("Hata: Oturum açmış kullanıcı bulunamadı!");
+        
       }
     } catch (e) {
-      print("Firestore Kayıt Hatası: $e");
+      
       rethrow; // Hatayı yukarı fırlat ki UI'da görebilelim
     }
   }

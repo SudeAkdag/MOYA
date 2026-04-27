@@ -11,18 +11,21 @@ class EditProfileSheet extends StatefulWidget {
 }
 
 class _EditProfileSheetState extends State<EditProfileSheet> {
-  // Metin Alanları için Kontrolcüler
   late TextEditingController _nameController;
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _bdayController;
 
-  // Seçim Alanları
   String? _selectedGender;
-  List<String> _selectedFocusAreas = [];
+  List<String> _selectedGoals = [];
 
-  final List<String> _allFocusAreas = ['Stres Yönetimi', 'Uyku Kalitesi', 'Odaklanma', 'Anksiyete', 'Özgüven', 'Mutluluk'];
+  final List<String> _allGoals = [
+    'Stres & Kaygı', 
+    'Odaklanma', 
+    'Uyku Kalitesi', 
+    'Motivasyon'
+  ];
 
   @override
   void initState() {
@@ -33,12 +36,14 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     _phoneController = TextEditingController(text: widget.currentData['phone']);
     _bdayController = TextEditingController(text: widget.currentData['bday']);
     _selectedGender = widget.currentData['gender'];
-    _selectedFocusAreas = List<String>.from(widget.currentData['focusAreas'] ?? []);
+    _selectedGoals = List<String>.from(widget.currentData['selectedGoals'] ?? []);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Tüm renkleri ve fontları buradan çekiyoruz
     final theme = Theme.of(context);
+    
 
     return Container(
       padding: EdgeInsets.only(
@@ -46,7 +51,8 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
         left: 20, right: 20, top: 20,
       ),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
+        // AppThemes'deki background rengini kullanır
+        color: theme.scaffoldBackgroundColor, 
         borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
       ),
       child: SingleChildScrollView(
@@ -54,26 +60,31 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(child: Text("Profili Düzenle", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+            Center(
+              child: Text(
+                "Profili Düzenle", 
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)
+              )
+            ),
             const SizedBox(height: 20),
 
-            _buildTextField("Ad Soyad", _nameController),
-            _buildTextField("Kullanıcı Adı", _usernameController),
-            _buildTextField("E-posta", _emailController),
-            _buildTextField("Telefon Numarası", _phoneController, keyboardType: TextInputType.phone),
-            _buildTextField("Doğum Tarihi", _bdayController),
+            _buildTextField("Ad Soyad", _nameController, theme),
+            _buildTextField("Kullanıcı Adı", _usernameController, theme),
+            _buildTextField("E-posta", _emailController, theme),
+            _buildTextField("Telefon Numarası", _phoneController, theme, keyboardType: TextInputType.phone),
+            _buildTextField("Doğum Tarihi", _bdayController, theme),
 
             const SizedBox(height: 16),
-            _buildLabel("Cinsiyet"),
+            _buildLabel("Cinsiyet", theme),
             _buildGenderDropdown(theme),
 
-            const SizedBox(height: 16),
-            _buildLabel("Odak Alanların"),
+            const SizedBox(height: 20),
+            _buildLabel("Odak Alanların", theme),
             _buildFocusAreas(theme),
 
             const SizedBox(height: 30),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+              // Buton stili zaten AppThemes'deki elevatedButtonTheme'den geliyor
               onPressed: () {
                 widget.onSave({
                   'name': _nameController.text,
@@ -82,11 +93,11 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
                   'phone': _phoneController.text,
                   'bday': _bdayController.text,
                   'gender': _selectedGender,
-                  'focusAreas': _selectedFocusAreas,
+                  'selectedGoals': _selectedGoals,
                 });
                 Navigator.pop(context);
               },
-              child: const Text("Güncelle"),
+              child: const Center(child: Text("GÜNCELLE")),
             ),
           ],
         ),
@@ -94,26 +105,42 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     );
   }
 
-  // Yardımcı Widget: Metin Girişleri
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(String label, TextEditingController controller, ThemeData theme, {TextInputType keyboardType = TextInputType.text}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        style: TextStyle(color: theme.colorScheme.onSurface),
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          labelStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+          filled: true,
+          // Kart yüzeyi (surface) rengini hafif şeffaf kullanarak derinlik katıyoruz
+          fillColor: theme.colorScheme.surface.withOpacity(0.5),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12), 
+            borderSide: BorderSide.none
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.primaryColor, width: 2),
+          ),
         ),
       ),
     );
   }
 
-  // Yardımcı Widget: Cinsiyet Seçimi
   Widget _buildGenderDropdown(ThemeData theme) {
     return DropdownButtonFormField<String>(
       value: _selectedGender,
-      decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+      dropdownColor: theme.colorScheme.surface,
+      style: TextStyle(color: theme.colorScheme.onSurface),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: theme.colorScheme.surface.withOpacity(0.5),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      ),
       items: ['Kadın', 'Erkek', 'Belirtmek İstemiyorum']
           .map((g) => DropdownMenuItem(value: g, child: Text(g)))
           .toList(),
@@ -121,36 +148,47 @@ class _EditProfileSheetState extends State<EditProfileSheet> {
     );
   }
 
-  // Yardımcı Widget: Tıklanabilir Odak Alanları (Chips)
   Widget _buildFocusAreas(ThemeData theme) {
     return Wrap(
       spacing: 8,
-      runSpacing: 0,
-      children: _allFocusAreas.map((area) {
-        final isSelected = _selectedFocusAreas.contains(area);
+      runSpacing: 8,
+      children: _allGoals.map((goal) {
+        final isSelected = _selectedGoals.contains(goal);
         return FilterChip(
-          label: Text(area),
+          label: Text(goal),
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
           selected: isSelected,
           onSelected: (bool selected) {
             setState(() {
-              if (selected) {
-                _selectedFocusAreas.add(area);
-              } else {
-                _selectedFocusAreas.remove(area);
-              }
+              selected ? _selectedGoals.add(goal) : _selectedGoals.remove(goal);
             });
           },
-          selectedColor: theme.primaryColor.withOpacity(0.2),
-          checkmarkColor: theme.primaryColor,
+          // Seçili rengi temanın primary rengi yapar
+          selectedColor: theme.primaryColor,
+          checkmarkColor: Colors.white,
+          backgroundColor: theme.colorScheme.surface.withOpacity(0.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          side: BorderSide(
+            color: isSelected ? theme.primaryColor : theme.colorScheme.onSurface.withOpacity(0.1)
+          ),
         );
       }).toList(),
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.white70)),
+      child: Text(
+        text, 
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: theme.colorScheme.onSurface.withOpacity(0.7),
+          fontWeight: FontWeight.bold
+        )
+      ),
     );
   }
 }

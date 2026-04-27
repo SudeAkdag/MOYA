@@ -6,4 +6,4 @@ abstract class ThemeEvent {}
 class ChangeThemeEvent extends ThemeEvent {
   final AppThemeType themeType;
   ChangeThemeEvent(this.themeType);
-}
+} 

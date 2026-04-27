@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:moya/presentation/screens/E&M/meditation_screen.dart';
+import 'package:moya/presentation/screens/blog/blog_screen.dart';
+import 'package:moya/presentation/screens/calendar/calendar_screen.dart';
+import 'package:moya/presentation/screens/chatbot/chatbot_screen.dart';
+import 'package:moya/presentation/screens/home/home_screen_new.dart';
+import 'package:moya/presentation/screens/music/music_screen.dart';
+import 'package:moya/presentation/screens/profile/profile_screen.dart' show ProfileScreen;
+import 'package:moya/presentation/screens/recording/recorded_screen.dart';
+import 'package:moya/presentation/screens/settings/settings_screen.dart';
 import 'package:moya/presentation/widgets/custom_bottom_nav_bar.dart';
 import '../../presentation/widgets/side_menu_drawer.dart';
-import 'home/home_screen_new.dart'; 
-import 'music/music_screen.dart';
-import 'blog/blog_screen.dart';
-import 'E&M/meditation_screen.dart';
-import 'profile/profile_screen.dart';
-import 'recording/recorded_screen.dart';
-import 'chatbot/chatbot_screen.dart';
-import 'settings/settings_screen.dart';
-import 'package:moya/presentation/screens/calendar/calendar_screen.dart';
+
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -19,9 +20,10 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
+  // 🔑 Drawer'ı açmak için gereken anahtar
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  int _currentIndex = 2; // Başlangıç ekranı: Ana Sayfa
+  int _currentIndex = 2; // Başlangıç: Ana Sayfa
   int _lastIndex = 2; 
 
   void _onItemTapped(int index) {
@@ -36,32 +38,24 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   Widget _buildPage(int index) {
+    // Merkezi drawer açma fonksiyonu
+    final VoidCallback openDrawer = () => _scaffoldKey.currentState?.openDrawer();
+
     switch (index) {
-      case 0: 
-        return MeditationScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
-      case 1: 
-        return MusicScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
+      case 0: return MeditationScreen(onMenuTap: openDrawer);
+      case 1: return MusicScreen(onMenuTap: openDrawer);
       case 2: 
         return HomeScreenNew(
-          onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
-          onProfileTap: () => _onItemTapped(5),
+          onMenuTap: openDrawer, // 🚀 Artık side bar'ı açar
+          onProfileTap: () => _onItemTapped(5), // 🚀 Artık profile götürer
         );
-      case 3: 
-        return CalendarScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
-      case 4: 
-        return BlogScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
-      case 5: 
-        return ProfileScreen(onBack: () => setState(() => _currentIndex = _lastIndex));
-      
-      // DÜZELTİLEN KISIM BURASI: RecordedScreen'e menü açma yetkisi verildi
-      case 6: 
-        return RecordedScreen(onMenuTap: () => _scaffoldKey.currentState?.openDrawer());
-      
+      case 3: return CalendarScreen(onMenuTap: openDrawer);
+      case 4: return BlogScreen(onMenuTap: openDrawer);
+      case 5: return ProfileScreen(onBack: () => setState(() => _currentIndex = _lastIndex));
+      case 6: return RecordedScreen(onMenuTap: openDrawer);
       case 7: return const ChatbotScreen();
-      case 9: 
-        return SettingsScreen(onBack: () => setState(() => _currentIndex = _lastIndex));
-      default:
-        return const Center(child: Text("Sayfa Bulunamadı"));
+      case 9: return SettingsScreen(onBack: () => setState(() => _currentIndex = _lastIndex));
+      default: return const Center(child: Text("Sayfa Bulunamadı"));
     }
   }
 
@@ -71,14 +65,15 @@ class _MainWrapperState extends State<MainWrapper> {
     final isWideLayout = MediaQuery.of(context).size.width > 720;
 
     return Scaffold(
-      key: _scaffoldKey, 
+      key: _scaffoldKey, // 🔑 Scaffold anahtarı bağlandı
       extendBody: true, 
       
+      // Side Bar (Drawer)
       drawer: isWideLayout
           ? null
           : SideMenuDrawer(onMenuTap: (index) {
               _onItemTapped(index);
-              Navigator.pop(context); 
+              Navigator.pop(context); // Tıklayınca menüyü kapat
             }),
 
       body: Row(
@@ -88,13 +83,14 @@ class _MainWrapperState extends State<MainWrapper> {
             VerticalDivider(
               width: 1, 
               thickness: 1, 
-              color: theme.dividerColor.withAlpha(100),
+              color: theme.dividerColor.withOpacity(0.1),
             ),
           ],
           Expanded(child: _buildPage(_currentIndex)),
         ],
       ),
 
+      // Alt Menü
       bottomNavigationBar: isWideLayout 
           ? null 
           : CustomBottomNavBar(

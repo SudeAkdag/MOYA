@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:moya/core/theme/app_theme.dart';
+import 'package:moya/core/theme/bloc/theme_bloc.dart';
+import 'package:moya/core/theme/bloc/theme_event.dart';
 import 'package:moya/main.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Paket eklendi
@@ -13,9 +16,11 @@ import '../../main_wrapper.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
+
 
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
@@ -28,6 +33,15 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+
+@override
+void initState() {
+  super.initState();
+  // Kayıt veya giriş ekranı açıldığında temayı DEFAULT (Nature) yap
+  Future.microtask(() {
+    context.read<ThemeBloc>().add(ChangeThemeEvent(AppThemeType.nature));
+  });
+}
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

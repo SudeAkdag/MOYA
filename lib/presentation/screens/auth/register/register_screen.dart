@@ -1,12 +1,12 @@
-// ignore_for_file: unused_field
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:moya/data/models/user_model.dart';
-import 'package:moya/presentation/screens/onboarding/personalization_wrapper.dart';
-
+import 'package:moya/core/theme/bloc/theme_bloc.dart';
+import 'package:moya/presentation/screens/onboarding/onboarding_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // context.read için// ThemeBloc için
+import 'package:moya/core/theme/bloc/theme_event.dart'; // ChangeThemeEvent için
+import 'package:moya/core/theme/app_theme.dart'; // AppThemeType için
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,14 +22,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _userController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController(); 
+  final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _bdayController = TextEditingController();
 
   // Seçimler ve Durumlar
   String _selectedGender = "Kadın";
   final List<String> _genders = ["Kadın", "Erkek", "Diğer"];
-  bool _obscurePassword = true; // Şifreyi gizle/göster kontrolü
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -42,73 +42,74 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  // KAYIT FONKSİYONU
+  @override
+void initState() {
+  super.initState();
+  // Kayıt veya giriş ekranı açıldığında temayı DEFAULT (Nature) yap
+  Future.microtask(() {
+    context.read<ThemeBloc>().add(ChangeThemeEvent(AppThemeType.nature));
+  });
+}
+
   Future<void> _onComplete() async {
-    if (!_formKey.currentState!.validate()) {
-      return; 
-    }
+  if (!_formKey.currentState!.validate()) return;
 
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(
-          child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
-        ),
-      );
+  try {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: CircularProgressIndicator(color: Theme.of(context).primaryColor),
+      ),
+    );
 
-      // 1. ADIM: Firebase Auth ile kullanıcıyı oluştur
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    // 1. ADIM: Firebase Auth ile kullanıcıyı oluştur (Sadece kimlik oluşturma)
+    UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
 
-      // 2. ADIM: Güncel UserModel'i oluştur (Artık UID parametresi almıyor)
-      final newUser = UserModel(
-        fullName: _nameController.text.trim(),
-        username: _userController.text.trim(),
-        email: _emailController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
-        birthDate: _bdayController.text.trim(),
-        gender: _selectedGender,
-        focusAreas: [], // Odak alanları 5 adımlı sayfalarda doldurulacak
-      );
+    // 2. ADIM: Onboarding sayfasına gönderilecek veriyi hazırla
+    final Map<String, dynamic> userData = {
+      'uid': userCredential.user!.uid, // Auth'tan gelen benzersiz ID
+      'name': _nameController.text.trim(),
+      'username': _userController.text.trim(),
+      'email': _emailController.text.trim(),
+      'phone': _phoneController.text.trim(),
+      'bday': _bdayController.text.trim(),
+      'gender': _selectedGender,
+      'focusAreas': [],
+    };
 
-      // 3. ADIM: Firestore'a kaydet 
-      // toMap() fonksiyonu artık veritabanında 'uid: null' oluşturmayacak
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set(newUser.toMap());
+    // ASYNC GAP KONTROLÜ: await sonrası context kullanımı için mounted kontrolü
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // Loading'i kapat
 
-      if (mounted) {
-        Navigator.pop(context); // Yükleniyor dairesini kapat
-        
-        // 4. ADIM: Ana sayfaya yönlendir
-        Navigator.pushAndRemoveUntil(
-          context,
-         MaterialPageRoute(builder: (context) => const PersonalizationWrapper(initialData: {},)), 
-  (route) => false
-        );
-      }
-    } catch (e) {
-      if (mounted) Navigator.pop(context);
-      debugPrint("Kayıt Hatası: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Kayıt başarısız: $e"), backgroundColor: Colors.red),
-      );
-    }
+    // 3. ADIM: Veriyi yanımıza alarak Onboarding ekranına geç
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OnboardingScreen(initialUserData: userData),
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // Hata olursa loading'i kapat
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Kayıt başarısız: $e"), backgroundColor: Colors.red),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
     final primaryColor = theme.primaryColor;
-    
-    // Temaya göre giriş kutularının arka planını ayarla
-    final inputFillColor = theme.brightness == Brightness.dark 
-        ? Colors.white.withOpacity(0.05) 
+
+    final inputFillColor = theme.brightness == Brightness.dark
+        ? Colors.white.withOpacity(0.05)
         : Colors.black.withOpacity(0.05);
 
     return Scaffold(
@@ -122,14 +123,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         title: Column(
           children: [
-            Text(
-              'MOYA', 
-              style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 1.5)
-            ),
-            Text(
-              'Zihinsel yolculuğuna başla', 
-              style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 12)
-            ),
+            Text('MOYA',
+                style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    letterSpacing: 1.5)),
+            Text('Zihinsel yolculuğuna başla',
+                style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 12)),
           ],
         ),
         centerTitle: true,
@@ -142,12 +143,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Hesap Oluştur', style: TextStyle(color: textColor, fontSize: 28, fontWeight: FontWeight.bold)),
+                Text('Hesap Oluştur',
+                    style: TextStyle(color: textColor, fontSize: 28, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text('Ücretsiz başla, istediğin zaman iptal et', style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 14)),
+                Text('Ücretsiz başla, istediğin zaman iptal et',
+                    style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 14)),
                 const SizedBox(height: 32),
-
-                // AD SOYAD (Sadece harf kısıtlamalı)
                 _buildTextField(
                   label: 'AD SOYAD',
                   hint: 'Adın ve soyadın',
@@ -161,8 +162,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                   validator: (val) => val!.trim().isEmpty ? 'Boş bırakılamaz' : null,
                 ),
-
-                // KULLANICI ADI
                 _buildTextField(
                   label: 'KULLANICI ADI',
                   hint: 'Kullanıcı adın',
@@ -172,8 +171,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   inputFillColor: inputFillColor,
                   validator: (val) => val!.trim().isEmpty ? 'Boş bırakılamaz' : null,
                 ),
-
-                // E-POSTA (Format kontrollü)
                 _buildTextField(
                   label: 'E-POSTA',
                   hint: 'ornek@email.com',
@@ -185,12 +182,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   inputFillColor: inputFillColor,
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'E-posta boş bırakılamaz';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) return 'Geçerli bir e-posta girin';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      return 'Geçerli bir e-posta girin';
+                    }
                     return null;
                   },
                 ),
-
-                // TELEFON (Sadece rakam)
                 _buildTextField(
                   label: 'TELEFON',
                   hint: '05XX XXX XX XX',
@@ -202,8 +199,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   formatters: [FilteringTextInputFormatter.digitsOnly],
                   validator: (val) => val!.trim().isEmpty ? 'Boş bırakılamaz' : null,
                 ),
-
-                // ŞİFRE (Göz butonlu ve güvenlik kontrollü)
                 _buildTextField(
                   label: 'ŞİFRE',
                   hint: 'En az 8 karakter',
@@ -226,8 +221,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-
-                // DOĞUM TARİHİ & CİNSİYET (Yan yana)
                 Row(
                   children: [
                     Expanded(
@@ -250,26 +243,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-                
                 const SizedBox(height: 32),
-
-                // YOLCULUĞA BAŞLA BUTONU
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _onComplete,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor, 
-                      foregroundColor: theme.colorScheme.onPrimary, 
+                      backgroundColor: primaryColor,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Yolculuğa Başla 🚀', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: const Text('Yolculuğa Başla 🚀',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // GİRİŞ YAP YÖNLENDİRMESİ
                 Center(
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -279,9 +268,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 14),
                         children: [
                           TextSpan(
-                            text: 'Giriş Yap', 
-                            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)
-                          ),
+                              text: 'Giriş Yap',
+                              style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -295,7 +283,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // DİNAMİK TEXTFIELD TASARIMI
   Widget _buildTextField({
     required String label,
     required String hint,
@@ -318,7 +305,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(color: theme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+            style: TextStyle(
+                color: theme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
           ),
           const SizedBox(height: 8),
           TextFormField(
@@ -335,8 +323,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               fillColor: inputFillColor,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              // Şifre alanıysa tıklanabilir göz ikonu, değilse sabit ikon
-              suffixIcon: isPassword 
+              suffixIcon: isPassword
                   ? IconButton(
                       icon: Icon(
                         obscureText ? Icons.visibility_off : Icons.visibility,
@@ -344,7 +331,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         size: 20,
                       ),
                       onPressed: onToggleVisibility,
-                      splashRadius: 24,
                     )
                   : (icon != null ? Icon(icon, color: textColor.withOpacity(0.4), size: 20) : null),
               errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 10),
@@ -355,7 +341,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // DİNAMİK DROPDOWN TASARIMI
   Widget _buildDropdownField(ThemeData theme, Color textColor, Color inputFillColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -364,7 +349,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Text(
             'CİNSİYET',
-            style: TextStyle(color: theme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+            style: TextStyle(
+                color: theme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
